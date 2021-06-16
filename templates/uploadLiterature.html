@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>文献上传</title>
+    {% load staticfiles %}
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div style="margin: 10px">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <!--点击首页后跳转至首页路由-->
+                <a class="navbar-brand" href="{% url 'index:index' id 1 %}">首页</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:uploadLiterature' id literature_id 0 %}">文献上传</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:checkLiterature' id 1 %}">查看已上传文献</a>
+            </div>
+            <div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 18px">
+                            {% if user.name == "" %}
+                                {{ user.username }}
+                            {% else %}
+                                {{ user.name }}
+                            {% endif %}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="{% url 'base:setPassword' %}">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'base:logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+</div>
+<br/>
+
+
+<main style="margin-top:-20px;margin-bottom: 20px;margin-left: 180px;margin-right: 180px;border: solid;border-color: #761c19 ">
+    <div class="infosbox">
+        <h2 style="text-align: center"><strong>>>>文献上传<<<</strong></h2>
+        <hr style="background-color: #761c19;height: 2px">
+        <div style="margin: 20px">
+            {% if literature.literature_file == "" %}
+                <h3>
+                    <div class="alert alert-warning" style="text-align:left;font-weight: bold">
+                        <label style="color: #080808">提示：请尽快上传文献的文件，否则文献无法被其他人查阅</label>
+                    </div>
+                </h3>
+            {% else %}
+                <h3>
+                    <div class="alert alert-info" style="text-align:left;font-weight: bold">
+                        <label style="color: #080808">提示：该文献已上传文献文件，可被其他用户查阅下载</label>
+                    </div>
+                </h3>
+            {% endif %}
+            <hr style="height: 2px;background-color: #ce8483 ">
+
+            <p style="text-align: center;margin-left:100px; font-weight: bold;font-size: xx-large">{{ literature.literature_name }}
+                <a href="{% url 'literature:deleteLiterature' id literature.id %}">
+                    <button type="button" class="btn btn-danger"
+                            style="float: right; margin-right: 50px;margin-top:30px; font-size: large">删除文献
+                    </button>
+                </a>
+            </p>
+            <p style="font-size: x-large"><strong>作者：</strong>
+                {{ literature.literature_author }}</p>
+            <p style="font-size: x-large"><strong>文献关键词：</strong>
+                {% for label in literature.literature_label.all %}
+                    {% if label == literature.literature_label.all.last %}
+                        <label style="font-weight: normal">{{ label.label_name }}</label>
+                    {% else %}
+                        <label style="font-weight: normal">{{ label.label_name }},</label>
+                    {% endif %}
+                {% endfor %}
+            </p>
+            <p style="font-size: x-large"><strong>文献文件名：</strong>
+                {{ literature.filename }}&nbsp&nbsp&nbsp&nbsp&nbsp
+                <strong>文件大小：</strong>{{ literature.filesize }} KB</p>
+            <hr>
+            <p style="font-size: x-large"><strong>点赞数：</strong>
+                {{ literature.literature_like }} 次&nbsp&nbsp&nbsp&nbsp&nbsp
+                <strong>下载数：</strong>{{ literature.literature_download }} 次
+                &nbsp&nbsp&nbsp&nbsp&nbsp<strong>访问量：</strong>
+                {{ literature.literature_view }} 次&nbsp&nbsp&nbsp&nbsp&nbsp
+                <strong>评论量：</strong>{{ literature.literature_comment }} 条</p>
+            <p style="font-size: x-large"><strong>文献上传者：</strong>
+                {{ literature.literature_uploader }}&nbsp&nbsp&nbsp&nbsp&nbsp
+                <strong>上传日期：</strong>{{ literature.upload_date }}</p>
+
+            <hr>
+            <form enctype="multipart/form-data" action="{% url 'literature:upload' id literature.id %}"
+                  method="post">
+                {% csrf_token %}
+                <input style="margin-left: 430px;font-size: x-large" type="file" name="LiteratureFile"/>
+                <input style="margin-left: 208px;font-size: x-large" type="submit" value="上传文献"/>
+
+                <a href="{% url 'literature:commentLiterature' id literature.id 1 0 %}">
+                    <button type="button" class="btn btn-warning"
+                            style="float: left; margin-left: 100px;margin-top:-20px; font-size: x-large">查看评论
+                    </button>
+                </a>
+
+                {% if literature.literature_file == "" %}
+                    <button disabled="disabled" type="button" class="btn btn-info"
+                            style="float:right;margin-right: 100px;margin-top:-20px;font-size: x-large">下载文献
+                    </button>
+                {% else %}
+                    <a href="{% url 'literature:download' literature.id literature.filename %}">
+                        <button type="button" class="btn btn-info"
+                                style="float:right;margin-right: 100px;margin-top:-20px; font-size: x-large">下载文献
+                        </button>
+                    </a>
+                {% endif %}
+            </form>
+            <p>
+            <div style="text-align: center;font-weight:bold;font-size:x-large;color: #c12e2a;">
+                {{ tips }}</div>
+            </p>
+            {% if type == 1 %}
+                <p>
+                <div class="alert alert-success" style="text-align: center;font-weight:bold;font-size:x-large">
+                    文件上传成功！
+                </div>
+                </p>
+            {% else %}
+                {% if result %}
+                    <p>
+                    <div class="alert alert-warning" style="text-align: center;font-weight:bold;font-size:x-large">
+                        文件上传失败，请先选择文件！
+                    </div>
+                    </p>
+                {% else %}
+                    <br>
+                    <br>
+                    <br>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</main>
+
+
+</body>
+</html>

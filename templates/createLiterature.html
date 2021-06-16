@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>上传文献</title>
+    {% load staticfiles %}
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div style="margin: 10px">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <!--点击首页后跳转至首页路由-->
+                <a class="navbar-brand" href="{% url 'index:index' id 1 %}">首页</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:createLiterature' id 1 0 %}">新建文献</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:createLabel' id 1 0 %}">新建文献标签</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:checkLiterature' id 1 %}">查看已上传文献</a>
+            </div>
+            <div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 18px">
+                            {% if user.name == "" %}
+                                {{ user.username }}
+                            {% else %}
+                                {{ user.name }}
+                            {% endif %}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="{% url 'base:setPassword' %}">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'base:logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+<br/>
+
+<main style="margin-top:-20px;margin-bottom: 20px;margin-left: 180px;margin-right: 180px;border: solid;border-color: #761c19 ">
+    <div class="infosbox">
+        <h2 style="text-align: center"><strong>>>>填写文献的上传信息<<<</strong></h2>
+        <hr style="background-color: #761c19;height: 2px">
+        <div style="margin: 20px">
+            <!--表单控件，用于提交输入信息-->
+            <form class="form-inline" action="" method="post" name="upload" onsubmit="return Check(document.upload)">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="literature_name" style="font-size: x-large">文献标题:</label>
+                    <input id="literature_name" name="literature_name" type="text" class="form-control"
+                           placeholder="文献标题">
+                </div>
+                <div class="form-group">
+                    <label for="literature_author" style="font-size: x-large">
+                        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp文献作者:</label>
+                    <input id="literature_author" name="literature_author" type="text" class="form-control"
+                           placeholder="文献作者">
+                </div>
+                <br>
+                <br>
+                <div class="form-group">
+                    <a><label for="lab" class="cke_label"
+                              style="font-size: x-large;color: #080808;float: left">
+                        文献标签:</label>
+                    </a>
+                    <select multiple name="literature_label" class="form-control"
+                            style="width:210px;height:120px;font-size:large">
+                        {% for label in labels %}
+                            <option value="{{ label.id }}">{{ label.label_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button id="button" type="submit" class="btn btn-success"
+                        style="margin-top:10px ;margin-left: 158px;font-size: large">新建文献
+                </button>
+
+            </form>
+
+            <!--文献名和文献作者，重复导致文献创建失败-->
+            {% if createFail %}
+                <h3>
+                    <div
+                            style="color: #e38d13 ;text-align: center;font-weight: bold">文献新建失败,该文献已存在!
+                    </div>
+                </h3>
+            {% else %}
+                {% if type == 1 %}
+                    <h3>
+                        <div style="color: #4cae4c ;text-align: center;font-weight: bold">新建文献成功!
+                        </div>
+                    </h3>
+                {% else %}
+                    <br/>
+                    <br/>
+                {% endif %}
+            {% endif %}
+
+            <hr style="height: 2px;background-color: #ce8483 ">
+
+            <!--该用户还未创建任何标签-->
+            {% if result %}
+                <h3>
+                    <div class="alert alert-success"
+                         style="text-align:left;font-weight: bold">您还未曾新建任何文献:(
+                    </div>
+                </h3>
+            {% else %}
+                <h3>
+                    <div class="alert alert-success"
+                         style="text-align:left;font-weight: bold">所有新建的文献如下表所示☟
+                        <label style="color: #080808;font-size: 21px">(提示：请尽快上传文献的文件，否则文献无法被其他人看到)</label>
+                    </div>
+                </h3>
+            {% endif %}
+
+            <table class="table table-hover">
+                <thead>
+                <tr style="font-size: 21px">
+                    <th>文献标题</th>
+                    <th>文献作者</th>
+                    <th>文献标签</th>
+                    <th>上传日期</th>
+                    <th>上传者</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for list in pages.object_list %}
+                    <tr style="font-size: 21px">
+                        <td style="font-weight: bold;color: #5cb85c ">{{ list.literature_name }}</td>
+                        <td>{{ list.literature_author }}</td>
+                        <td>
+                            <div>
+                                {% for label in list.literature_label.all %}
+                                    <h4>• {{ label.label_name }}</h4>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>{{ list.upload_date | date:"Y年m月d日H:i:s" }}</td>
+                        <td>{{ list.literature_uploader.name }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <!--分页功能-->
+            <div class="pagelist">
+                {% if pages.has_previous %}
+                    <a href="{% url 'literature:createLiterature' id pages.previous_page_number 0 %}"
+                       style="color: #080808;font-size: medium;font-weight: bold ">&nbsp<<&nbsp</a>
+                {% endif %}
+
+                {% if pages.object_list %}
+                    {% for page in pages.paginator.page_range %}
+                        {% if pages.number == page %}
+                            <a href="javascript:;" class="curPage" style="color: #080808;
+                            font-size: medium;font-weight: bold;color: crimson ;background-color: #080808 ">&nbsp{{ page }}&nbsp</a>
+                        {% else %}
+                            <a href="{% url 'literature:createLiterature' id page 0 %}" style="color: #080808;font-size: medium;
+                            font-weight: bold;background-color: #cccccc ">&nbsp{{ page }}&nbsp</a>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                {% if pages.has_next %}
+                    <a href="{% url 'literature:createLiterature' id pages.next_page_number 0 %}"
+                       style="color: #080808;font-size: medium;font-weight: bold ">
+                        &nbsp>>&nbsp</a>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</main>
+
+<!--编写网页表单的数据验证脚本，即在提交留言信息之前(发送POST请求之前),
+由JavaScript脚本验证文本输入框的数据是否为空-->
+<script type="text/javascript">
+    function Check(obj) {
+        if (obj.literature_name.value == "") {
+            alert("请输入文献标题...");
+            obj.literature_name.focus();
+            return false;
+        }
+        if (obj.literature_author.value == "") {
+            alert("请输入文献作者...");
+            obj.literature_author.focus();
+            return false;
+        }
+        if (obj.literature_label.value == "") {
+            alert("请选择文献标签(一个或多个)...");
+            obj.literature_label.focus();
+            return false;
+        }
+        //弹出确认提交提示框
+        if (confirm("你确定要新建文献吗?")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>
+
+</body>
+</html>

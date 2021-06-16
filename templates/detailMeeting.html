@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>会议详情</title>
+    {% load staticfiles %}
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div style="margin: 10px">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <!--点击首页后跳转至首页路由-->
+                <a class="navbar-brand" href="{% url 'index:index' id 1 %}">首页</a>
+            </div>
+            <div class="navbar-header">
+                <!--点击会议详情后跳转至会议详情路由-->
+                <a class="navbar-brand" href="{% url 'meeting:detailMeeting' id meeting_id %}">会议详情</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'meeting:checkMeeting' id 1 %}">查看会议通知</a>
+            </div>
+            {% if user.user_type != 0 %}
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="{% url 'meeting:createMeeting' id %}">发布会议通知</a>
+                </div>
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="{% url 'meeting:deleteMeeting' id 1 %}">删除会议通知</a>
+                </div>
+            {% endif %}
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'base:labSchedule' id 1 %}">查看实验室时间表</a>
+            </div>
+            <div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 18px">
+                            {% if user.name == "" %}
+                                {{ user.username }}
+                            {% else %}
+                                {{ user.name }}
+                            {% endif %}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="{% url 'base:setPassword' %}">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'base:logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+<br/>
+
+
+<main style="margin-top:-20px;margin-bottom: 20px;margin-left: 240px;margin-right: 240px;border: solid;border-color: #e38d13">
+    <div class="infosbox">
+        <h2 style="text-align: center"><strong>>>>会议的详细信息<<<</strong></h2>
+        <hr style="background-color: #e38d13;height: 2px">
+        <div style="margin: 20px">
+
+            <p style="text-align: center;font-weight: bold;font-size: xx-large">{{ meeting.meeting_name }}</p>
+            <p style="text-align: center;font-size: x-large">
+                会议发布时间：{{ meeting.create_date }}&nbsp&nbsp&nbsp&nbsp发布人：{{ meeting.meeting_user.name }}
+            <p style="font-size: x-large"><strong
+                    style="color: #c12e2a">会议主题：</strong>{{ meeting.meeting_theme }}</p>
+            <p style="font-size: x-large"><strong
+                    style="color: #c12e2a">会议留言：</strong>{{ boards.count }}条留言</p>
+            <p style="font-size: x-large"><strong
+                    style="color: #c12e2a">参会班级：</strong>{{ meeting.meeting_banji.banji_name }}
+                &nbsp({{ meeting.meeting_banji.banji_major.major_name }})</p>
+            <p style="font-size: x-large"><strong style="color: #c12e2a">会议地点：</strong>{{ dataAndlab.lab.lab_name }}</p>
+            {% if result %}
+                <p style="font-size: x-large"><strong style="color: #c12e2a">会议讨论：</strong>未创建讨论区</p>
+            {% else %}
+                <p style="font-size: x-large"><strong style="color: #c12e2a">会议讨论：</strong>{{ chat.chat_name }}</p>
+            {% endif %}
+
+            {#当会议只有一周的时候#}
+            {% if dataAndlab.start_week == dataAndlab.end_week %}
+                <p style="font-size: x-large"><strong style="color: #c12e2a">会议时间：</strong>第{{ dataAndlab.start_week }}周
+                </p>
+            {% else %}
+                <p style="font-size: x-large"><strong style="color: #c12e2a">会议时间：</strong>第{{ dataAndlab.start_week }}周—第{{ dataAndlab.end_week }}周
+                </p>
+            {% endif %}
+            {#当每周只有一天时#}
+            {% if dataAndlab.start_day == dataAndlab.end_day %}
+                {% if dataAndlab.start_day == 1 %}
+                    <p style="font-size: x-large">
+                        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp星期一</p>
+                {% elif  dataAndlab.start_day == 2 %}
+                    <p style="font-size: x-large">
+                        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp星期二</p>
+                {% elif  dataAndlab.start_day == 3 %}
+                    <p style="font-size: x-large">
+                        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp星期三</p>
+                {% elif  dataAndlab.start_day == 4 %}
+                    <p style="font-size: x-large">
+                        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp星期四</p>
+                {% elif  dataAndlab.start_day == 5 %}
+                    <p style="font-size: x-large">
+                        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp星期五</p>
+                {% elif  dataAndlab.start_day == 6 %}
+                    <p style="font-size: x-large">
+                        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp星期六</p>
+                {% elif  dataAndlab.start_day == 7 %}
+                    <p style="font-size: x-large">
+                        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp星期日</p>
+                {% endif %}
+            {% else %}
+                <p style="font-size: x-large">
+                    &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp周{{ dataAndlab.start_day }}—周{{ dataAndlab.end_day }}</p>
+            {% endif %}
+            {% if dataAndlab.start == dataAndlab.end %}
+                <p style="font-size: x-large">
+                    &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp第{{ dataAndlab.start }}节</p>
+            {% else %}
+                <p style="font-size: x-large">
+                    &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp第{{ dataAndlab.start }}节—第{{ dataAndlab.end }}节</p>
+            {% endif %}
+            <hr style="height: 2px">
+
+            <a href="{% url 'meeting:boardMeeting' id meeting_id 1 %}">
+                <button id="button" type="button" class="btn btn-info" style="margin-left: 128px;font-size: large">
+                    查看会议留言
+                </button>
+            </a>
+            {% if meeting.meeting_file == "" %}
+                <button disabled="disabled" type="button" class="btn btn-info"
+                        style="margin-left: 360px;font-size: large">
+                    下载会议文件
+                </button>
+                <h3>
+                    <div class="alert alert-danger" style="text-align: center;font-weight: bolder;color:#c12e2a">
+                        会议未上传文件
+                    </div>
+                </h3>
+            {% else %}
+                <a href="{% url 'meeting:downloadMeeting' meeting_id meeting.filename %}">
+                    <button type="button" class="btn btn-info" style="margin-left: 360px;font-size: large">下载会议文件
+                    </button>
+                </a>
+                <h3>
+                    <div class="alert alert-success" style="text-align: center;font-weight: bolder;color:#3e8f3e">
+                        会议已上传文件：<a style="color: #080808">{{ meeting.filename }}（{{ meeting.filesize }}KB）</a>
+                    </div>
+                </h3>
+            {% endif %}
+            {#当学生访问会议界面时，没有上传文件的权限#}
+            {% if user.user_type != 0 %}
+                <hr/>
+                <h3 style="text-align: center;font-size: x-large;color: #28a4c9"><strong>▼添加会议文件▼</strong></h3>
+                <form enctype="multipart/form-data" action="{% url 'meeting:uploadMeeting' id meeting_id %}"
+                      method="post">
+                    {% csrf_token %}
+                    <input style="margin-left: 375px;font-size: x-large" type="file" name="meetingFile"/>
+                    <input style=" margin-left: 375px;font-size: x-large" type="submit" value="上传课件"/>
+                </form>
+                <p>
+                <div style="text-align: center;font-weight:bold;font-size:x-large;color: #c12e2a;">{{ tips }}</div>
+                </p>
+            {% endif %}
+        </div>
+    </div>
+    </div>
+</main>
+
+<!--编写网页表单的数据验证脚本，即在提交留言信息之前(发送POST请求之前),
+由JavaScript脚本验证文本输入框的数据是否为空-->
+<script type="text/javascript">
+    function Check(obj) {
+        if (obj.content.value == "") {
+            alert("请填写您想说的话...");
+            obj.content.focus();
+            return false;
+        }
+        //弹出确认提交提示框
+        if (confirm("你确定提交吗?")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>实验室值班表</title>
+    {% load staticfiles %}
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div style="margin: 10px">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <!--点击首页后跳转至首页路由-->
+                <a class="navbar-brand" href="{% url 'index:index' id 1 %}">首页</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'base:dutySchedule' id 1 %}">实验室值班表</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'base:labSchedule' id 1 %}">实验室时间表</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'meeting:checkMeeting' id 1 %}">查看会议通知</a>
+            </div>
+            {% if user.user_type == 1 %}
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="{% url 'meeting:createMeeting' id %}">发布会议通知</a>
+                </div>
+            {% endif %}
+            {% if user.user_type != 0 %}
+                <div class="navbar-header">
+                    <!--点击删除会议通知后跳转至删除会议通知路由-->
+                    <a class="navbar-brand" href="{% url 'meeting:deleteMeeting' id 1 %}">删除会议通知</a>
+                </div>
+            {% endif %}
+            <div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 18px">
+                            {% if user.name == "" %}
+                                {{ user.username }}
+                            {% else %}
+                                {{ user.name }}
+                            {% endif %}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="{% url 'base:setPassword' %}">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'base:logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+<br/>
+
+<main style="margin-top:-20px;margin-bottom: 20px;margin-left: 240px;margin-right: 240px;border: solid;border-color: #761c19">
+    <div class="infosbox">
+        <h2 style="text-align: center"><strong>>>>实验室值班表<<<</strong></h2>
+        <hr style="background-color: #761c19;height: 2px">
+        <div style="margin: 30px">
+
+            <form action="" method="post" name="labCheck">
+                {% csrf_token %}
+                <div class="form-group">
+                    <div class="col-sm-3">
+                        <select class="form-control" name="lab"
+                                style="margin-top:-2px ;width: 175px;height: 45px;font-size: x-large;margin-left: 280px;font-weight: bold">
+                            <option value="0">所有实验室</option>
+                            {% for lab in labs %}
+                                <option value="{{ lab.id }}">{{ lab.lab_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-left: 500px">
+                    <button id="button" type="submit" class="btn btn-info"
+                            style="font-size: large;background-color: #761c19 ">
+                        查看值班表
+                    </button>
+                </div>
+                <hr style="background-color:#761c19;height: 2px">
+            </form>
+
+            {% if result %}
+                <h3>
+                    <div class="alert alert-warning"
+                         style="text-align: left;font-weight: bold">
+                        <label style="font-size:25px;color:#761c19">{{ lab.lab_name }}</label> 的值班信息如下所示▼
+                    </div>
+                </h3>
+            {% else %}
+                <h3>
+                    <div class="alert alert-warning"
+                         style="text-align:left;font-weight: bold">
+                        <label style="font-size:25px;color:#761c19">所有实验室</label> 的值班信息如下所示▼
+                    </div>
+                </h3>
+            {% endif %}
+            <table class="table table-hover">
+                <thead>
+                <tr style="font-size: 21px">
+                    <th>实验室名称</th>
+                    <th style="color: #4cae4c">值班时间</th>
+                    <th style="color: #761c19 ">值班人员</th>
+                    <th style="color: #31b0d5">性别</th>
+                    <th style="color: #d3a60c">电话</th>
+                </tr>
+                </thead>
+                {% if not result %}
+                    {% for duty in pages.object_list %}
+                        <tbody>
+                        {% for lab in duty.lab.all %}
+                            <tr style="font-size: 23px">
+                                <td style="font-weight: bold;color: #761c19;font-size: 23px">{{ lab.lab_name }}</td>
+                                {% if duty.week == 1 %}
+                                    <td>星期一</td>
+                                {% elif duty.week == 2 %}
+                                    <td>星期二</td>
+                                {% elif duty.week == 3 %}
+                                    <td>星期三</td>
+                                {% elif duty.week == 4 %}
+                                    <td>星期四</td>
+                                {% elif duty.week == 5 %}
+                                    <td>星期五</td>
+                                {% elif duty.week == 6 %}
+                                    <td>星期六</td>
+                                {% else %}
+                                    <td>星期日</td>
+                                {% endif %}
+                                <td>{{ duty.name }}</td>
+                                {% if duty.sex == 0 %}
+                                    <td>男</td>
+                                {% else %}
+                                    <td>女</td>
+                                {% endif %}
+                                <td>{{ duty.phone }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    {% endfor %}
+
+                {% else %}
+
+                    {% for duty in dutys %}
+                        <tbody>
+                        <tr style="font-size: 23px">
+                            <td style="font-weight: bold;color: #761c19;font-size: 23px">{{ lab.lab_name }}</td>
+                            {% if duty.week == 1 %}
+                                <td>星期一</td>
+                            {% elif duty.week == 2 %}
+                                <td>星期二</td>
+                            {% elif duty.week == 3 %}
+                                <td>星期三</td>
+                            {% elif duty.week == 4 %}
+                                <td>星期四</td>
+                            {% elif duty.week == 5 %}
+                                <td>星期五</td>
+                            {% elif duty.week == 6 %}
+                                <td>星期六</td>
+                            {% else %}
+                                <td>星期日</td>
+                            {% endif %}
+                            <td>{{ duty.name }}</td>
+                            {% if duty.sex == 0 %}
+                                <td>男</td>
+                            {% else %}
+                                <td>女</td>
+                            {% endif %}
+                            <td>{{ duty.phone }}</td>
+                        </tr>
+                        </tbody>
+                    {% endfor %}
+                {% endif %}
+
+            </table>
+
+            <!--分页功能-->
+            <div class="pagelist" style="text-align: center">
+                {% if pages.has_previous %}
+                    <a href="{% url 'base:dutySchedule' id pages.previous_page_number %}"
+                       style="color: #080808;font-size: medium;font-weight: bold ">&nbsp<<&nbsp</a>
+                {% endif %}
+
+                {% if pages.object_list %}
+                    {% for page in pages.paginator.page_range %}
+                        {% if pages.number == page %}
+                            <a href="javascript:;" class="curPage" style="color: #080808;
+                            font-size: medium;font-weight: bold;color: crimson ;background-color: #080808 ">&nbsp{{ page }}&nbsp</a>
+                        {% else %}
+                            <a href="{% url 'base:dutySchedule' id page %}" style="color: #080808;font-size: medium;
+                            font-weight: bold;background-color: #cccccc ">&nbsp{{ page }}&nbsp</a>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                {% if pages.has_next %}
+                    <a href="{% url 'base:dutySchedule' id pages.next_page_number %}"
+                       style="color: #080808;font-size: medium;font-weight: bold ">
+                        &nbsp>>&nbsp</a>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+    </div>
+</main>
+
+</body>
+</html>

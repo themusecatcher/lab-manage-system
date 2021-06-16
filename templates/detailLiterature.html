@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>文献详情</title>
+    {% load staticfiles %}
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div style="margin: 10px">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <!--点击首页后跳转至首页路由-->
+                <a class="navbar-brand" href="{% url 'index:index' id 1 %}">首页</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:detailLiterature' id literature_id 0 0 %}">文献详情</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:searchLiterature' id 1 %}">查阅文献</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a>
+            </div>
+            <div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 18px">
+                            {% if user.name == "" %}
+                                {{ user.username }}
+                            {% else %}
+                                {{ user.name }}
+                            {% endif %}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="{% url 'base:setPassword' %}">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'base:logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+</div>
+<br/>
+
+<main style="margin-top:-20px;margin-bottom: 20px;margin-left: 180px;margin-right: 180px;border: solid;border-color: #761c19 ">
+    <div class="infosbox">
+        <h2 style="text-align: center"><strong>☆☆☆文献详情☆☆☆</strong></h2>
+        <hr style="background-color: #761c19;height: 2px">
+        <div style="margin: 20px">
+            <p>
+            <h1 style="text-align: center;margin-right:50px;font-weight: bold;color: #e38d13">
+                {% if favorite == 0 %}
+                    <a href="{% url 'literature:addFavorite' id literature_id %}">
+                <span class="glyphicon glyphicon-star-empty"
+                      style="float:left;margin-left:10px;margin-top:-10px ;color: gold ; font-size: 45px;"></span>
+                    </a>
+                {% else %}
+                    <a href="{% url 'literature:deleteFavorite' id literature_id %}">
+                <span class="glyphicon glyphicon-star"
+                      style="float:left;margin-left:10px;margin-top:-10px ;color: gold ; font-size: 45px;"></span>
+                    </a>
+                {% endif %}
+                {{ literature.literature_name }}</h1></p>
+            <p style="font-size: x-large"><strong>作者：</strong>
+                {{ literature.literature_author }}
+                <a href="{% url 'literature:likeLiterature' id literature_id %}">
+                    <button type="button" class="btn btn-success"
+                            style="float: right;margin-right: 50px; font-size: large">点赞
+                    </button>
+                </a>
+            </p>
+            <p style="font-size: x-large"><strong>文献关键词：</strong>
+                {% for label in literature.literature_label.all %}
+                    {% if label == literature.literature_label.all.last %}
+                        <label style="font-weight: normal">{{ label.label_name }}</label>
+                    {% else %}
+                        <label style="font-weight: normal">{{ label.label_name }},</label>
+                    {% endif %}
+                {% endfor %}
+            </p>
+            <p style="font-size: x-large"><strong>文献文件名：</strong>
+                {{ literature.filename }} ({{ literature.filesize }} KB)</p>
+            <hr>
+            <p style="font-size: x-large"><strong>点赞数：</strong>
+                {{ literature.literature_like }} 次&nbsp&nbsp&nbsp&nbsp&nbsp
+                <strong>下载数：</strong>{{ literature.literature_download }} 次
+                &nbsp&nbsp&nbsp&nbsp&nbsp<strong>访问量：</strong>
+                {{ literature.literature_view }} 次&nbsp&nbsp&nbsp&nbsp&nbsp
+                <strong>评论量：</strong>{{ literature.literature_comment }} 条</p>
+            <p style="font-size: x-large"><strong>文献上传者：</strong>
+                {{ literature.literature_uploader }}&nbsp&nbsp&nbsp&nbsp&nbsp
+                <strong>上传日期：</strong>{{ literature.upload_date }}</p>
+
+            <hr style="height: 2px;background-color: #ce8483 ">
+
+            <a href="{% url 'literature:commentLiterature' id literature.id 1 0 %}">
+                <button type="button" class="btn btn-warning"
+                        style="float:left; margin-left: 100px; font-size: x-large">文献评论
+                </button>
+            </a>
+
+            <a href="{% url 'literature:download' literature.id literature.filename %}">
+                <button type="button" class="btn btn-info"
+                        style="float: right; margin-right: 100px; font-size: x-large">下载文献
+                </button>
+            </a>
+            <br>
+            <br>
+            <hr style="height: 2px;background-color: #e4b9c0">
+
+            <div class="panel panel-danger col-sm-13">
+                <div class="panel-heading">
+                    <h3><label style="font-weight: bold">相似文献推荐</label><label style="font-weight: normal;font-size: 19px;color: #080808">(提示: 点击<strong
+                            style="color: #e38d13;font-size: 22px">文献名称</strong>即可查看文献详情)</label></h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-hover">
+                        <tbody>
+                        {% for literature in literatures %}
+                            <tr style="font-size: 20px">
+                                <td width=>
+                                    <a href="{% url 'literature:detailLiterature' id literature.id 1 0 %}"
+                                       style="color: #e38d13;font-weight: bold;font-size: 23px">{{ literature.literature_name }}
+                                    </a>
+                                </td>
+                                <td>作者: {{ literature.literature_author }}</td>
+                                <td><p>关键词:</p>
+                                    <div>
+                                        {% for label in literature.literature_label.all %}
+                                            <label>•{{ label.label_name }}</label>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>访问量: {{ literature.literature_view }}</td>
+                                <td>上传日期: {{ literature.upload_date | date:"Y年m月d日" }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

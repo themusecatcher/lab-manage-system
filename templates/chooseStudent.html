@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>选择人员</title>
+    {% load staticfiles %}
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div style="margin: 10px">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <!--点击首页后跳转至首页路由-->
+                <a class="navbar-brand" href="{% url 'index:index' id 1 %}">首页</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'meeting:chooseStudent' id meeting.id 1 %}">选择人员</a>
+            </div>
+            <div class="navbar-header">
+                <!--点击查看会议通知后跳转至查看会议通知路由-->
+                <a class="navbar-brand" href="{% url 'meeting:checkMeeting' id 1 %}">查看会议通知</a>
+            </div>
+            {% if user.user_type != 0 %}
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="{% url 'meeting:createMeeting' id %}">发布会议通知</a>
+                </div>
+                <div class="navbar-header">
+                    <!--点击删除会议通知后跳转至删除会议通知路由-->
+                    <a class="navbar-brand" href="{% url 'meeting:deleteMeeting' id 1 %}">删除会议通知</a>
+                </div>
+            {% endif %}
+            <div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 18px">
+                            {% if user.name == "" %}
+                                {{ user.username }}
+                            {% else %}
+                                {{ user.name }}
+                            {% endif %}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="{% url 'base:setPassword' %}">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'base:logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+<br/>
+
+<main style="margin-top:-20px;margin-bottom: 20px;margin-left: 180px;margin-right: 180px;border: solid;border-color: #761c19 ">
+    <div class="infosbox">
+        <h2 style="text-align: center"><strong>>>>选择 <label style="color: darkred;">{{ meeting.meeting_name }}</label>
+            的参会人员<<<</strong></h2>
+        <div style="margin: 20px">
+
+            <hr style="height: 2px;background-color: #ce8483 ">
+            <!--表单控件，用于提交输入信息-->
+            <form class="form-inline" action="" method="post" name="upload" onsubmit="return Check(document.upload)">
+                {% csrf_token %}
+                <div class="form-group">
+                    <select name="searchMethod" class="form-control"
+                            style="margin-left:160px;width:100px;height:40px;font-size:21px;font-weight: bold;color: darkred ">
+                        <option value="2">姓名</option>
+                        <option value="1">班级</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="searchContent"
+                           style="margin-left:20px ;margin-top:5px; font-size: 23px">搜索：</label>
+                    <input id="searchContent" name="searchContent" class="form-control" type="text"
+                           style="margin-top:-7px;width:240px;height: 40px;font-size: 18px" placeholder="请输入搜索内容">
+                </div>
+                <button id="button" type="submit" class="btn btn-success"
+                        style="margin-left: 20px;font-size:18px;margin-top:1px">搜索
+                </button>
+            </form>
+            <hr/>
+            {% if result %}
+                <div class="alert alert-warning" style="font-size:21px;text-align:left;font-weight: bold">
+                    很遗憾，没有搜索到任何相关记录，请重新输入
+                </div>
+            {% else %}
+                {% if not all %}
+                    <div class="alert alert-info" style="font-size:21px;text-align:left;font-weight: bold">
+                        通过<strong style="color: #4cae4c;font-size: x-large"> {{ method }} </strong>搜索，
+                        共搜索到 <strong style="color: #4cae4c;font-size: x-large">{{ number }}</strong> 条人员记录
+                    </div>
+                {% endif %}
+            {% endif %}
+            <table class="table table-hover">
+                <thead>
+                <tr style="font-size: x-large">
+                    <th>姓名</th>
+                    <th>班级</th>
+                    <th>专业</th>
+                    <th>学院</th>
+                    <th>Choose/Delete</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for list in pages.object_list %}
+                    <tr style="font-size: 21px">
+                        <td>{{ list.user.name }}</td>
+                        <td>{{ list.user.user_banji.banji_name }}</td>
+                        <td>{{ list.user.user_banji.banji_major.major_name}}</td>
+                        <td>{{ list.user.user_banji.banji_major.major_department.department_name}}</td>
+                        <td>
+                            {% if list.choose == 0 %}
+                            <a href="{% url 'meeting:addStudent' id meeting.id list.user.id %}">
+                                <button id="button" type="button" class="btn btn-success"
+                                        style="font-size: 18px">Choose
+                                </button>
+                            </a>
+                            {% else %}
+                                <a href="{% url 'meeting:deleteStudent' id meeting.id list.user.id %}">
+                                <button id="button" type="button" class="btn btn-danger"
+                                        style="font-size: 18px">Delete
+                                </button>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <!--分页功能-->
+            <div class="pagelist">
+                {% if pages.has_previous %}
+                    <a href="{% url 'meeting:chooseStudent' id meeting.id pages.previous_page_number %}"
+                       style="color: #080808;font-size: medium;font-weight: bold ">&nbsp<<&nbsp</a>
+                {% endif %}
+
+                {% if pages.object_list %}
+                    {% for page in pages.paginator.page_range %}
+                        {% if pages.number == page %}
+                            <a href="javascript:;" class="curPage" style="color: #080808;
+                            font-size: medium;font-weight: bold;color: crimson ;background-color: #080808 ">&nbsp{{ page }}&nbsp</a>
+                        {% else %}
+                            <a href="{% url 'meeting:chooseStudent' id meeting.id page %}" style="color: #080808;font-size: medium;
+                            font-weight: bold;background-color: #cccccc ">&nbsp{{ page }}&nbsp </a>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                {% if pages.has_next %}
+                    <a href="{% url 'meeting:chooseStudent' id meeting.id pages.next_page_number %}"
+                       style="color: #080808;font-size: medium;font-weight: bold ">
+                        &nbsp>>&nbsp</a>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

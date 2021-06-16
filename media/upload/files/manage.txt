@@ -1,0 +1,249 @@
+安装pip：
+①curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+②python get-pip.py
+或：python get-pip.py -i https://pypi.tuna.tsinghua.edu.cn/simple
+清华镜像：pip install -i https://pypi.tuna.tsinghua.edu.cn/simple ***
+          	第一部分 安装djangoWeb框架
+1 创建一个文件夹Webproject（名称）：mkdir Mangement
+2 进入Webproject文件夹：cd Mangement
+3 创建虚拟环境virtual（名称）：virtualenv virtual
+4 启动虚拟环境virtual：virtual\Scripts\activate
+5 在虚拟环境中安装django框架：pip install -i https://pypi.doubanio.com/simple/  --trusted-host pypi.doubanio.com django==2.0(在虚拟环境中安装django框架,2.0版本)
+一次性安装requirements.txt中所有模块：pip install -r requirements.txt
+6 可以使用命令行查看：pip list
+
+         	第二部分 创建django项目
+7 在虚拟环境下创建项目：django-admin startproject manage （manage为项目名称）
+8 进入manage:cd manage
+9 启动服务器：python manage.py runserver
+10 执行数据库迁移生成数据表：python manage.py migrate（默认使用sqlite3数据库）
+11 创建超级管理员：python manage.py createsuperuser
+     5.1 输入username：admin
+     5.2 填写Email  address：d_muses@163.com
+     5.3 填写登录密码：123root
+     5.4 再次输入密码：123root
+12 启动服务器登录查看：输入username&password
+	第三部分 创建app
+project下包括多个app，其中每一个app实现一个模块内的功能
+13 创建一个应用basic：python manage.py startapp basic  (basic为应用名称）
+14 创建完应用将basic添加到manage目录下的settings.py的 INSTALLED_APPS 块内，这样才能将应用加入到项目中：'basic'，
+	第四部分 添加数据模型
+15 在basic中的models.py文件中创建Person类,Order类，并设置相应字段，则数据库中会生成相应的表Person和Order
+（如果在类中定义一个元类则不会在数据库中生产该类对应的表：class Meta:  <此处换行>abstract=True）
+16 在manage的全局配置文件settings.py中将默认数据库sqlite3改为mysql:
+DATABASES = {   #数据库
+'default': {  #默认数据库引擎sqlite3,将其更改为mysql,连接mysql数据库时，需要指明数据库名称，用户名，密码
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'stock',#要使用数据库名为stock，即需提前创建一个mysql的数据库
+        'USER':'root',
+        'PASSWORD':'root'
+    }
+}
+17 启动mysql，可以用cmd创建所需数据库名称为stock,并可设置编码为utf_8：create  databse demo default character set utf8;
+18 如果还未安装mysql数据库驱动，则在虚拟环境venv中安装pymysql：pip install pymysql  (可以用：pip list 查看）
+如果安装时间超限，则使用：pip install -i https://pypi.doubanio.com/simple/  --trusted-host pypi.doubanio.com pymysql
+19 将pymysql导入，在basic文件下的__init__.py中导入，并将其设置一下：
+import pymysql  #将pymysql导入
+pymysql.install_as_MySQLdb()
+
+将数据库中已有的数据库，针对里面每一个表生成一个Django模型，自动添加到models.py：
+python manage.py inspectdb  （该命令将检查数据库stock里面的表）
+然后：python manage.py inspectdb > basic/models.py
+20 将models中的数据模型，Person，Order类转化为数据库中的数据表：
+python manage.py makemigrations (用于生成迁移文件,此时并未生产数据表）
+python manage.py migrate (执行成功后，两个表会自动生成一个字段id，int类型，且为主键)
+{字段类型示例：last_name=models.CharField(max_length=30)
+    age = models.IntegerField(default=0)
+    created_at=models.DateTimeField(auto_now_add=True)}
+21 可以进入交互控制台实现数据的增删改查：python manage.py shell（输入quit()即可退出shell）
+22 执行完shell命令后导入模块命令：from app1.models import Person,Order
+增，方法1：Warehouses.objects.create(wid=1,wname="Phone",wdesc="手机仓库")
+增，方法2：w=Warehouses.objects.create(wid=2,wname="Band",wdesc="手环仓库")
+查，方法1，所有：Warehouses.objects.all()
+查，方法2，匹配：Warehouses.objects.get(wid=1)
+查，方法3，过滤：Warehouses.objects.filter(wid__gt=1)  (查询id>1的所有对象)  
+查，方法4，过滤排序：Warehouses.objects.filter(wid__gt=1).order_by('wid') (按wid递增排序)
+改，：
+w=Warehouses.objects.get(wid=1)
+w.wid=3
+w.wname="Earphone"
+w.desc="耳机仓库"
+w.save()
+删除：
+w=Warehouses.objects.get(wid=1)
+w.delete()
+	第五部分 管理后台
+23 在basic目录下的admin.py导入Warehouses，并创建一个类，继承admin.ModelAdmin:
+from basic.models import Warehouses
+class WarehousesAdmin(admin.ModelAdmin):
+    list_display = ('wid','wname','wdesc')
+    list_filter = ('wid', 'wname', 'wdesc')
+    search_fields = ('wid','wname', 'wdesc')
+  最后将Warehouses模型注册到WarehousesAdmin中：
+admin.site.register(Warehouses,WarehousesAdmin)#要绑定的模型，绑定的位置
+#此处创建几个属性，表中也会显示几个属性，并且list_display为固定用法，改为display则效果不同
+  django框架的配置项24~27
+24 可以通过manage文件内的settings.py更改web页面显示的默认语言：'en-us'改为中文：'zh-Hans'，默认时区：'UTC'改为北京时区：'Asia/Shanghai'
+25 上接步骤23，配置过滤查询字段：list_filter = ('first_name','last_name','age')
+26 上接步骤25，配置搜索查询字段：search_fields = ('first_name',) 注：只有一个元组时后面也要加一个逗号！！！
+27 上接步骤26，配置只读属性字段：readonly_fields = ('created_at','updated_at') #即不可以修改
+		路由（urls）
+精确字符串格式示例：articles/2018
+转换格式：articles/<int:year>/
+正则表达式：re_path(articles/([0-9]{4})/) 即匹配由0-9组成的4为数字
+	或：re_path(articles/?p<year>([0-9]{4})/)表示将匹配到的4为数字赋值给year
+29 配置路由：path('app1/',include('app1.urls'))  并导入include模块：from django.urls import include
+30 在manage文件的urls.py中配置路由：path('basic/',include('basic.urls')) 即当访问basic时自动去匹配basic.urls中的路由
+31.1 上接步骤30，在basic文件中创建一个python file：urls.py,创建完成后，内容为：
+       from django.urls import path
+       from basic import views as basic_views #别名
+       urlpatterns = [
+          #当访问'articles/2018'时，就执行basic_views下的article函数
+           path('articles/2018', basic_views.article),#精确匹配
+       ]
+32.1 在basic文件的views.py文件中创建函数article：
+     from django.http import HttpResponse
+     def article(request):
+           return HttpResponse("迪丽热巴")
+31.2 格式匹配basic中urls.py修改为：path('articles/<int:year>', basic_views.article),#转换格式
+32.2 修改article函数：
+     from django.http import HttpResponse
+     def article(request,year):
+           content='The year is %s' % year
+           return HttpResponse(content)
+31.3 正则表达式,basic的urls.py修改为：
+from django.urls import re_path
+re_path(r'^articles/(?P<year>[0-9]{4})/$', basic_views.article),#正则表达式，r表示禁止转义
+32.3 article函数不变
+          表单（forms）
+一 传统的方式
+33 在basic文件的urls.py定义一个路由：path('get_warehouses',basic_views.get_warehouses)
+34 然后在basic文件下的views.py定义一个get_warehouses函数：
+from django.shortcuts import render
+def get_warehouses(request):
+    return render(request,'warehouses.html')#warehouses.html为视图的名称
+35 在第一级manage文件夹下创建一个templates文件，用于保存html文件
+在template中创建warehouses.html文件：
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+            <form action="/basic/get_warehouses" method="post">
+                <label for="仓库名称">仓库名称：</label>
+                <input type="text" id="wid" name="wid" maxlength="=25" required>
+                <label for="仓库描述">仓库描述：</label>
+                <input type="text" id="wdesc" name="wdesc" maxlength="=25" required>
+            </form>
+</body>
+</html>
+36 将warehous.html和views.py中对应函数关联起来，找到manage全局里面的setting.py
+找到里面的templates模块里的DIRS，其代表django要查找的模板文件对应的路径，
+即刚刚创建的templates文件，修改文:
+'DIRS': [BASE_DIR+'/templates'],
+二 更方便的方式
+37 在basic文件中新建一个python file: forms.py ,可以将表单放到这里面统一处理：
+from django import forms
+class WarehousesForm(forms.Form):
+    wid = forms.IntegerField(label='仓库编号')
+    wname=forms.CharField(label='仓库名称',max_length=25)
+    wdesc=forms.CharField(label='仓库描述',max_length=25)
+38 在basic下的views.py中定义get_warehouses函数：
+from django.shortcuts import render
+from basic.forms import WarehousesForm
+def get_warehouses(request):
+    return render(request,'warehouses.html',{'form':WarehousesForm()})#warehouses.html为视图的名称
+39 则templates下的warehouses.html文件也需要改为，body标签内的内容为：
+<form action="/basic/get_warehouses" method="post">
+            {{ form1 }}
+</form>
+40 在warehouses.html中添加提交按钮，并防止被跨域攻击，body内容修改为：
+<form action="/basic/get_warehouses" method="post">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit">提交</button>
+</form>
+
+40 修改basic下的views.py中的get_warehouses函数，提交POST请求：
+from django.http import HttpResponse
+def get_warehouses(request):
+    if request.method == "POST":
+        form = WarehousesForm(request.POST)
+        if form.is_valid():  # 如果表单有效
+            wname = form.cleaned_data['wname']
+            wdesc = form.cleaned_data['wdesc']
+            return HttpResponse(wname + ' ' + wdesc)  # 显示姓名
+        else:
+            return HttpResponseRedirect('/error/')
+    else:
+        return render(request, 'warehouses.html', {'form1': WarehousesForm()})  # warehouses.html为视图的名称
+
+ 	视图
+41 在app1下的views.py创建person_detail函数，并导入相应模块：
+from django.http import Http404
+from app1.models import Person
+def person_detail(request,pk):
+    try:
+        p = Person.objects.get(pk=pk)
+    except Person.DoesNotExist:
+        raise Http404('Person Dose Not Exist')
+    return render(request,'person_detail.html',{'person':p})#person为随意定义的键名
+42 在templates文件中创建上面函数中的html文件，
+输出传递的变量person，可以直接输出对象，也可以输出对象的属性，这里输出属性，body标签内的内容为：
+  {{ person.first_name }}  
+43 在app1下的urls.py中添加路由：
+path('person_detail/<int:pk>',app1_views.person_detail),	
+         基于类的视图，输入对应url匹配成功页面显示的即为get请求，点击提交后显示的内容即为post请求
+44 在app1下的views.py创建PersonFormView类继承View类，并导入View模块
+from django.views import View
+class PersonFormView(View):
+    form_class=PersonForm
+    initial={'key':'value'}
+    template_name='name2.html'
+
+    def get(self,request,*args,**kwags):#get请求方法
+        return render(request,self.template_name,{'form2':self.form_class(initial=self.initial)})
+
+    def post(self,request,*args,**kwags):#post请求方法
+        form=self.form_class(request.POST)
+        if form.is_valid():
+            first_name=form.cleaned_data['first_name']
+            last_name=form.cleaned_data['last_name']
+            return HttpResponse(first_name+' '+last_name)
+        return render(request,self.template_name,{'form2':form})
+45 在templates下创建对于html文件name2.html，body标签内容为：
+   <form action="/app1/class_get_name" method="post">
+                {% csrf_token %}
+                {{ form2 }}
+            <button type="submit">提交</button>
+            </form>
+46 在app1下的urls.py中添加路由：
+path('class_get_name',app1_views.PersonFormView.as_view()),
+	模板
+变量：{{ var }}//如果是对象，可通过.来获取对象的属性，例如：{{ person.age }}
+标签：{% if %} //if语句 for语句
+过滤器：{{ name|lower}} //name如果是字母，则全部转为小写
+注释：{#....#}
+templates下的person_detail.html中的body标签内的内容：
+<!-- 这是注释-->
+    {{ person.first_name|upper }}
+    {% if person.first_name == 'Reba' %}
+    Hello,迪丽热巴 !
+    {% else %}
+    Where is my {#Dear#} ?
+    {% endif %}
+
+	examination使用说明
+1 Redis安装及启动，通过cmd进入Redis安装路径F:\Python\Redis，输入：redis-server.exe redis.windows.conf
+2 将项目源文件导入
+3 通过控制台创建虚拟环境venv：virtualenv venv
+4 启动虚拟环境：venv\Script\activate
+5 安装模块，在控制台输入命令，一次性将requirements.txt中的模块全部安装：pip install -r requirements.txt
+或者：pip install -i https://pypi.doubanio.com/simple/  --trusted-host pypi.doubanio.com -r requirements.txt
+ 配置数据库
+6.1 执行命令连接数据库：mysql -uroot -proot
+6.2 创建数据库：create database exam default character set utf8;
+6.3 迁移数据库：python manage.py migrate
+6.4 创建超级用户：python manage.py createsuperuser

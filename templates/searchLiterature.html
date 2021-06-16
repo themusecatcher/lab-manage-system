@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>查阅文献</title>
+    {% load staticfiles %}
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div style="margin: 10px">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <!--点击首页后跳转至首页路由-->
+                <a class="navbar-brand" href="{% url 'index:index' id 1 %}">首页</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:searchLiterature' id 1 %}">查阅文献</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a>
+            </div>
+            <div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 18px">
+                            {% if user.name == "" %}
+                                {{ user.username }}
+                            {% else %}
+                                {{ user.name }}
+                            {% endif %}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="{% url 'base:setPassword' %}">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'base:logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+</div>
+<br/>
+
+
+<main style="margin-top:-20px;margin-bottom: 20px;margin-left: 120px;margin-right: 120px;border: solid;border-color: #761c19 ">
+    <div class="infosbox">
+        <h2 style="text-align: center"><strong>☆☆☆查阅文献☆☆☆</strong></h2>
+        <div style="margin: 20px">
+
+            <hr style="height: 2px;background-color: #ce8483 ">
+            <!--表单控件，用于提交输入信息-->
+            <form class="form-inline" action="" method="post" name="upload" onsubmit="return Check(document.upload)">
+                {% csrf_token %}
+                <div class="form-group">
+                    <select name="searchMethod" class="form-control"
+                            style="margin-left:160px;width:130px;height:48px;font-size:x-large;font-weight: bold;color: #ce8483 ">
+                        <option value="1">标题</option>
+                        <option value="2">作者</option>
+                        <option value="3">关键词</option>
+                        <option value="4">上传者</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="searchContent"
+                           style="margin-left:20px ;margin-top:5px; font-size: xx-large">搜索内容：</label>
+                    <input id="searchContent" name="searchContent" class="form-control" type="text"
+                           style="margin-top:-7px;width:275px;height: 48px;font-size: x-large" placeholder="搜索内容">
+                </div>
+                <button id="button" type="submit" class="btn btn-success"
+                        style="margin-left: 20px;font-size:x-large;margin-top:5px">查阅
+                </button>
+            </form>
+            <hr/>
+            {% if result %}
+                <div class="alert alert-warning" style="font-size:21px;text-align:left;font-weight: bold">
+                    通过<strong style="color: #4cae4c;font-size: 24px"> {{ method }} </strong>搜索，
+                    很遗憾，没有找到相关文献记录，请重新输入
+                </div>
+            {% else %}
+                {% if not all %}
+                    <div class="alert alert-info" style="font-size:21px;text-align:left;font-weight: bold">
+                        通过<strong style="color: #4cae4c;font-size: 24px"> {{ method }} </strong>搜索，
+                        共搜索到 <strong style="color: #4cae4c;font-size: 24px">{{ number }}</strong> 条文献记录
+                        <label style="color: #080808">(提示: **点击文献<strong style="color: #e38d13;font-size: 23px"> 标题 </strong>查看文献详情**)</label>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info" style="font-size:21px;text-align:left;font-weight: bold">
+                        (提示: ***点击文献<strong style="color: #e38d13;font-size: 23px"> 标题 </strong>查看文献详情***)
+                    </div>
+                {% endif %}
+            {% endif %}
+            <table class="table table-hover">
+                <thead>
+                <tr style="font-size: large">
+                    <th>标题</th>
+                    <th>作者</th>
+                    <th>关键词</th>
+                    <th>文件名</th>
+                    <th>文献大小</th>
+                    <th>点赞数</th>
+                    <th>下载次数</th>
+                    <th>访问量</th>
+                    <th>评论量</th>
+                    <th>上传日期</th>
+                    <th>上传者</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for list in pages.object_list %}
+                    <tr style="font-size: large">
+                        <td width="110px">
+                            <a href="{% url 'literature:detailLiterature' id list.id 1 0 %}"
+                               style="color: #e38d13;font-weight: bold;font-size: x-large">
+                                {{ list.literature_name }}
+                            </a>
+                        </td>
+                        <td width="75px">{{ list.literature_author }}</td>
+                        <td width="145px">
+                            <div>
+                                {% for label in list.literature_label.all %}
+                                    <p>•{{ label.label_name }}</p>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td width="150px">{{ list.filename }}</td>
+                        <td width="95px">{{ list.filesize }}KB</td>
+                        <td width="90px">{{ list.literature_like }}</td>
+                        <td width="96px">{{ list.literature_download }}</td>
+                        <td width="80px">{{ list.literature_view }}</td>
+                        <td width="80px">{{ list.literature_comment }}</td>
+                        <td width="98px">{{ list.upload_date | date:"Y年m月d日" }}</td>
+                        <td width="80px">{{ list.literature_uploader.name }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <!--分页功能-->
+            <div class="pagelist" style="text-align: center">
+                {% if pages.has_previous %}
+                    <a href="{% url 'literature:searchLiterature' id pages.previous_page_number %}"
+                       style="color: #080808;font-size: medium;font-weight: bold ">&nbsp<<&nbsp</a>
+                {% endif %}
+
+                {% if pages.object_list %}
+                    {% for page in pages.paginator.page_range %}
+                        {% if pages.number == page %}
+                            <a href="javascript:;" class="curPage" style="color: #080808;
+                            font-size: medium;font-weight: bold;color: crimson ;background-color: #080808 ">&nbsp{{ page }}&nbsp</a>
+                        {% else %}
+                            <a href="{% url 'literature:searchLiterature' id page %}" style="color: #080808;font-size: medium;
+                            font-weight: bold;background-color: #cccccc ">&nbsp{{ page }}&nbsp</a>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                {% if pages.has_next %}
+                    <a href="{% url 'literature:searchLiterature' id pages.next_page_number %}"
+                       style="color: #080808;font-size: medium;font-weight: bold ">
+                        &nbsp>>&nbsp</a>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

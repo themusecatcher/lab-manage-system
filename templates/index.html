@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load staticfiles %}
+    <meta charset="utf-8">
+    <title>实验室智能管理系统</title>
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+
+<div style="margin: 10px">
+
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid" style="font-size: 16px">
+            <div class="navbar-header">
+                <!--点击首页后跳转至首页路由-->
+                <a class="navbar-brand" href="{% url 'index:index' id page %}">首页</a>
+            </div>
+            <div>
+                <ul class="nav navbar-nav">
+                    <!--只有老师和管理员能使用的功能-->
+                    {% if user.user_type != 0 %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                上传文献<b class="caret"></b>
+                            </a>
+                            <ul class="dropdown-menu" style="font-size: 16px">
+                                <li><a href="{% url 'literature:createLiterature' id 1 0 %}">新建文献</a></li>
+                                <li><a href="{% url 'literature:createLabel' id 1 0 %}">新建文献标签</a></li>
+                                <li><a href="{% url 'literature:checkLiterature' id 1 %}">查看已上传文献</a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
+
+                    <li><a href="{% url 'literature:searchLiterature' id 1 %}">查阅文献</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            会议<b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <!--只有老师和管理员能使用的功能-->
+                            {% if user.user_type == 1 %}
+                                <li><a href="{% url 'meeting:createMeeting' id %}">发布会议通知</a></li>
+                            {% endif %}
+                            <li><a href="{% url 'meeting:checkMeeting' id 1 %}">查看会议通知</a></li>
+                            <!--非学生用户才会具有以下功能-->
+                            {% if user.user_type != 0 %}
+                                <li class="divider"></li>
+                                <li><a href="{% url 'meeting:deleteMeeting' id 1 %}">删除会议通知</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            聊天室<b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            {% if user.user_type != 0 %}
+                                <li><a href="{% url 'chat:newChat' id page 0 %}">新建讨论区</a></li>
+                            {% endif %}
+                            <li><a href="{% url 'chat:checkChat' id page %}">查看讨论区</a></li>
+                            <li><a href="{% url 'chat:checkChatArea' id page %}">查看闲聊区</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="{% url 'base:labSchedule' id page %}">实验室时间表</a></li>
+                    <li><a href="{% url 'base:dutySchedule' id 1 %}">实验室值班表</a></li>
+                    <li><a href="{% url 'feedback:feedback' id 1 %}">信息反馈</a>
+                    <li><a href="{% url 'index:userHelp' id %}">使用帮助</a></li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown">
+                            {{ userName }} <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="/setPassword">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="/logout">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+<div class="panel col-sm-12" style="color: #080808 ;background-color: #ce8483 ">
+        <div class="panel-heading">
+            <label style="font-size: 27px;font-weight: bold">基本信息</label>
+        </div>
+    <div class="panel panel-info  col-sm-3" style="margin-top: -10px">
+        <div class="panel-heading col-sm-2" style="margin-left: -15px;margin-right: 5px;margin-top: 20px;margin-bottom: 95px">
+            <h3>个人简介</h3>
+        </div>
+        <div class="panel-body" style="font-size: 20px;background-color: #e4b9c0 ">
+        <br>
+            {% if user.user_type == 1 %}
+                <p>学 院：{{ user.user_major.major_department.department_name }}</p>
+                <p>姓 名：{{ name }}</p>
+                <p>简 介：{{ introduce }}</p>
+            {% elif user.user_type == 0 %}
+                <p>学 院：{{ user.user_banji.banji_major.major_department.department_name }}</p>
+                <p>专 业：{{ user.user_banji.banji_major.major_name }}</p>
+                <p>班 级：{{ user.user_banji.banji_name }}</p>
+                <p>姓 名：{{ name }}</p>
+                <p>简 介：{{ introduce }}</p>
+            {% else %}
+                <p>姓 名：{{ name }}</p>
+                <p>简 介：{{ introduce }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="panel panel-primary  col-sm-6" style="margin-top: -10px">
+        <div class="panel-heading">
+            <h3>实验室通告</h3>
+        </div>
+        <div class="panel-body" style="font-size: 20px">
+            {% for list in pages.object_list %}
+                <p>
+                    <a href="{% url 'index:notice' id list.id 1 %}"
+                       style="color: #761c19">[通知]{{ list.notice_name }}—{{ list.notice_date| date:"Y年m月d日" }}—浏览数: {{ list.notice_read }}</a>
+                </p>
+            {% endfor %}
+            <hr style="height: 17px">
+
+            <!--分页功能-->
+            <div class="pagelist" style="margin-left: 2px;margin-top: -13px">
+                {% if pages.has_previous %}
+                    {#使用内置标签url调用路由生成每页的路由地址#}
+                    <a href="{% url 'index:index' id pages.previous_page_number %}"
+                       style="color: #080808;font-size: 20px;font-weight: bold ">&nbsp<<&nbsp</a>
+                {% endif %}
+
+                {% if pages.object_list %}
+                    {% for page in pages.paginator.page_range %}
+                        {% if pages.number == page %}
+                            <a href="javascript:;" class="curPage" style="color: #080808;font-size: 20px;
+                            font-weight: bold;color: crimson ;background-color: #080808 ">&nbsp{{ page }}&nbsp</a>
+                        {% else %}
+                            <a href="{% url 'index:index' id page %}" style="color: #080808;font-size: 20px;
+                            font-weight: bold;background-color: #cccccc ">&nbsp{{ page }}&nbsp</a>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                {% if pages.has_next %}
+                    <a href="{% url 'index:index' id pages.next_page_number %}"
+                       style="color: #080808;font-size: 20px;font-weight: bold ">
+                        &nbsp>>&nbsp</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-default col-sm-3" style="margin-top: -10px">
+        <div class="panel-heading">
+            <h3><strong>最新会议通知</strong></h3>
+        </div>
+        <div class="panel-body">
+            {% for meeting in meetings %}
+                <p>
+                    <a href="{% url 'meeting:detailMeeting' id meeting.id %}"
+                       style="font-size:18px;font-weight:bold;;color: #3e8f3e ">{{ meeting.meeting_name }}—{{ meeting.meeting_banji.banji_name }}—{{ meeting.create_date|date:"m月d日H:i" }}
+                    </a>
+                </p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+    <div class="panel col-sm-12" style="background-color: bisque ;margin-top: -43px">
+        <div class="panel-heading">
+            <label style="font-size: 27px;font-weight: bold">文献相关</label>
+        </div>
+        <div class="panel panel-danger col-sm-4" style="margin-top: -10px">
+            <div class="panel-heading">
+                <h4>下载排行</h4>
+            </div>
+            <div class="panel-body">
+                {% for literature in downloadLiteratures %}
+                    <p>
+                        <a href="{% url 'literature:detailLiterature' id literature.id 1 0 %}"
+                           style="font-size:20px;color: #954121;font-weight: bold "><{{ literature.literature_name }}>: {{ literature.literature_author }} — 下载次数: {{ literature.literature_download }}</a>
+                    </p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="panel panel-danger  col-sm-4" style="margin-top: -10px">
+            <div class="panel-heading">
+                <h4>热搜文献</h4>
+            </div>
+            <div class="panel-body">
+                {% for literature in literatures %}
+                    <p>
+                        <a href="{% url 'literature:detailLiterature' id literature.id 1 0 %}"
+                           style="font-size: 20px;color: #954121 ;font-weight: bold  "><{{ literature.literature_name }}>: {{ literature.literature_author }} — 访问量: {{ literature.literature_view }}</a>
+                    </p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="panel panel-danger  col-sm-4" style="margin-top: -10px">
+            <div class="panel-heading">
+                <h4>最新上传</h4>
+            </div>
+            <div class="panel-body">
+                {% for literature in newLiteratures %}
+                    <p>
+                        <a href="{% url 'literature:detailLiterature' id literature.id 1 0 %}"
+                           style="font-size: 20px;color: #954121;font-weight: bold "><{{ literature.literature_name }}>: {{ literature.literature_author }} — 日期: {{ literature.upload_date|date:"Y年m.d" }}</a>
+                    </p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

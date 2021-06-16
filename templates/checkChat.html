@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>查看讨论区</title>
+    {% load staticfiles %}
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div style="margin: 10px">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'index:index' id 1 %}">首页</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'chat:checkChat' id 1 %}">查看讨论区</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'chat:checkChatArea' id 1 %}">查看闲聊区</a>
+            </div>
+            {% if user.user_type != 0 %}
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="{% url 'chat:newChat' id 1 0 %}">新建讨论区</a>
+                </div>
+            {% endif %}
+        <div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 18px">
+                            {% if user.name == "" %}
+                                {{ user.username }}
+                            {% else %}
+                                {{ user.name }}
+                            {% endif %}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="{% url 'base:setPassword' %}">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'base:logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+<br/>
+
+<main style="margin-top:-20px;margin-bottom: 20px;margin-left: 240px;margin-right: 240px;border: solid;border-color: #761c19 ">
+    <div class="infosbox">
+        <h2 style="text-align: center"><strong>◀◀◀讨论区信息表▶▶▶</strong></h2>
+        <hr style="background-color:#761c19 ;height: 2px">
+        <div style="margin: 25px">
+
+            {% if result %}
+                <h3>
+                    <div class="alert alert-info"
+                         style="text-align:left;font-weight: bold">目前还没有与您相关会议的讨论区被创建！
+                    </div>
+                </h3>
+            {% else %}
+                <h3>
+                    <div class="alert alert-info"
+                         style="text-align: left;font-weight: bold">与您相关会议的讨论区情况如下表所示▼
+                        <label style="color: #080808;font-size: 20px">(点击<a href="#"
+                                                                            style="color:#3e8f3e;font-size: 23px">讨论区名称</a>即可进入讨论区)</label>
+                    </div>
+                </h3>
+            {% endif %}
+
+            <table class="table table-hover">
+                <thead>
+                <tr style="font-size: 23px">
+                    <th>讨论区名称</th>
+                    <th>会议名称</th>
+                    <th>参会情况</th>
+                    <th>讨论区创建人</th>
+                    <th>讨论区创建时间</th>
+                    {% if user.user_type != 0 %}
+                        <th>Delete</th>
+                    {% endif %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for list in pages %}
+                    <tr style="font-size: 21px">
+                        <td>
+                            <!--将聊天室的id作为room_name传入，即可保证聊天室名称唯一可识别-->
+                            <a href="{% url 'chat:chatRoom' id list.id list.id 0 %}"
+                               style="color: #3e8f3e;font-weight: bold;font-size: 25px">
+                                {{ list.chat_name }}
+                            </a>
+                        </td>
+                        <td style="font-weight: bold;color: #761c19 ">{{ list.meeting.meeting_name }}</td>
+                        <td>{{ list.meeting.meeting_banji.banji_name }}</td>
+                        <td>{{ list.chat_user.name }}</td>
+                        <td>{{ list.create_date|date:"Y年m月d日" }}</td>
+                        {% if user.user_type != 0 %}
+                            <td>
+                                <a href="{% url 'chat:deleteChat' id list.id %}">
+                                    <button id="button" type="button" class="btn btn-danger"
+                                            style="font-size: 13px">删除
+                                    </button>
+                                </a>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <!--分页功能-->
+            <div class="pagelist" style="margin-left: 10px">
+                {% if pages.has_previous %}
+                    <a href="{% url 'chat:checkChat' id pages.previous_page_number %}"
+                       style="color: #080808;font-size: medium;font-weight: bold ">&nbsp<<&nbsp</a>
+                {% endif %}
+
+                {% if pages.object_list %}
+                    {% for page in pages.paginator.page_range %}
+                        {% if pages.number == page %}
+                            <a href="javascript:;" class="curPage" style="color: #080808;font-size: medium;
+                            font-weight: bold;color: crimson ;background-color: #080808 ">&nbsp{{ page }}&nbsp</a>
+                        {% else %}
+                            <a href="{% url 'chat:checkChat' id page %}" style="color: #080808;font-size: medium;
+                            font-weight: bold;background-color: #cccccc ">&nbsp{{ page }}&nbsp</a>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                {% if pages.has_next %}
+                    <a href="{% url 'chat:checkChat' id pages.next_page_number %}"
+                       style="color: #080808;font-size: medium;font-weight: bold ">
+                        &nbsp>>&nbsp</a>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+<script type="text/javascript">
+    document.getElementById("button").onclick = function firm() {
+        //弹出确认提交提示框
+        if (confirm("你确定要删除该讨论区吗?")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>
+</body>
+</html>

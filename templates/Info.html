@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加敏感词汇</title>
+    {% load staticfiles %}
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+	<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container" style="margin: 50px">
+	<div class="jumbotron" style="background-color: #ffe57b ">
+        {% if flag %}
+		<p style="font-size: 48px;font-weight: bolder">敏感词汇:
+            <label style="color: #ac2925 ;font-size: 56px;font-weight: bolder">
+                {{ sentitiveWord }}
+            </label>
+        </p>
+		<p style="color: #4cae4c;font-size: 48px;font-weight: bolder">成功标记为敏感词汇!  </p>
+            {% else %}
+            <p style="font-size: 48px;font-weight: bolder">敏感词汇:
+                <label style="color: #ac2925 ;font-size: 56px;font-weight: bolder">
+                    {{ sentitiveWord }}
+                </label>
+            </p>
+            <p style="color: #4cae4c;font-size: 48px;font-weight: bolder">已被标记，无需重复添加!
+            </p>
+        {% endif %}
+	</div>
+</div>
+</body>
+</html>

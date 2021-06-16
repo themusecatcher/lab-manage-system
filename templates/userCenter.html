@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load staticfiles %}
+    <meta charset="utf-8">
+    <title>个人中心</title>
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+<div style="margin: 10px">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <!--点击首页后跳转至首页路由-->
+                <a class="navbar-brand" href="{% url 'index:index' id page %}">首页</a>
+            </div>
+            <div class="navbar-header">
+                <!--点击个人中心后跳转至个人中心路由-->
+                <a class="navbar-brand" href="{% url 'base:userCenter' id %}">个人中心</a>
+            </div>
+            <div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 18px">
+                            {% if user.name == "" %}
+                                {{ user.username }}
+                            {% else %}
+                                {{ user.name }}
+                            {% endif %}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="{% url 'base:setPassword' %}">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'base:logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+<br/>
+
+<main style="margin-top:-20px;margin-bottom: 20px;margin-left: 200px;margin-right: 200px;border: solid;border-color: #3e8f3e">
+    <div class="infosbox">
+        <h2 style="text-align: center"><strong>>>>设置个人相关信息<<<</strong></h2>
+        <hr style="background-color: #3e8f3e;height: 2px">
+        <div style="margin: 20px">
+
+            <form name="Save" method="post" action="" class="form-horizontal">
+                {% csrf_token %}
+                <label class="col-sm-2 control-label" style="font-size: large">账 号</label>
+                <div class="col-sm-3">
+                    <p class="form-control-static" style="font-size: large">{{ username }}</p>
+                </div>
+                <br><br>
+
+                <label for="name" class="col-sm-2 control-label" style="font-size: large">姓 名</label>
+                <div class="col-sm-3">
+                    <input name="name" type="text" class="form-control" style="font-size: large;margin-top: 5px"
+                           placeholder={{ Name }}>
+                </div>
+                <br><br>
+
+                <label for="introduce" class="col-sm-2 control-label" style="font-size: large">简 介</label>
+                <div class="col-sm-5">
+                <textarea name="introduce" rows="5" class="form-control" style="font-size: large;margin-top:10px"
+                          placeholder={{ Introduce }}></textarea>
+                </div>
+                <br><br><br><br><br><br><br><br>
+
+                <label for="email" class="col-sm-2 control-label" style="font-size: large">邮 箱</label>
+                <div class="col-sm-5">
+                    <input name="email" type="email" class="form-control" style="font-size: large;margin-top: 5px"
+                           placeholder={{ Email }}>
+                </div>
+                <br><br>
+                <button id="button" style="margin-left:320px; margin-top: 20px;font-size: large" type="submit"
+                        class="btn btn-success">更新
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script type="text/javascript">
+    document.getElementById("button").onclick = function firm() {
+        //弹出确认提交提示框
+        if (confirm("你确定要更新个人信息吗?")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+</script>
+</body>
+</html>

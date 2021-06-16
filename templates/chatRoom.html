@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    {% if type == 0 %}
+        <title>{{ chat.chat_name }}讨论区</title>
+    {% else %}
+        <title>{{ chatArea.chat_name }}闲聊区</title>
+    {% endif %}
+    {% load staticfiles %}
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div style="margin: 10px">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <!--点击首页后跳转至首页路由-->
+                <a class="navbar-brand" href="{% url 'index:index' id 1 %}">首页</a>
+            </div>
+            {% if type == 0 %}
+                <div class="navbar-header">
+                    <a class="navbar-brand"
+                       href="{% url 'chat:chatRoom' id chat_id room_name type %}">{{ chat.chat_name }}讨论区</a>
+                </div>
+            {% else %}
+                <div class="navbar-header">
+                    <a class="navbar-brand"
+                       href="{% url 'chat:chatRoom' id chat_id room_name type %}">{{ chatArea.chat_name }}闲聊区</a>
+                </div>
+            {% endif %}
+            {% if type == 0 %}
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="{% url 'chat:checkChat' id 1 %}">查看讨论区</a>
+                </div>
+            {% else %}
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="{% url 'chat:checkChatArea' id 1 %}">查看闲聊区</a>
+                </div>
+            {% endif %}
+            <div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 18px">
+                            {% if user.name == "" %}
+                                {{ user.username }}
+                            {% else %}
+                                {{ user.name }}
+                            {% endif %}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="{% url 'base:setPassword' %}">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'base:logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+<br/>
+
+
+<main style="margin-top:-20px;margin-bottom: 20px;margin-left: 180px;margin-right: 180px;border: solid;border-color: #761c19">
+    <div class="infosbox">
+        {% if type == 0 %}
+            <h2 style="text-align: center"><strong>◀◀◀{{ chat.chat_name }}讨论区▶▶▶</strong></h2>
+        {% else %}
+            <h2 style="text-align: center"><strong>◀◀◀{{ chatArea.chat_name }}闲聊区▶▶▶</strong></h2>
+            {% if chatArea.chat_start == 0 %}
+                <h4 style="text-align: center;color: #e38d13 ;font-weight: bold">提示: 闲聊区开启后才可正常使用</h4>
+            {% else %}
+                <h4 style="text-align: center;color: #31b0d5 ;font-weight: bold">提示: 闲聊区已开启，可正常使用</h4>
+            {% endif %}
+        {% endif %}
+        <hr style="background-color:#761c19;height: 2px">
+        <div style="margin: 30px">
+            {% if type == 0 %}
+                <h3 style="text-align: center"><strong>会议名称：</strong>{{ chat.meeting.meeting_name }}&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+                    <strong>参会情况：</strong>{{ chat.meeting.meeting_banji.banji_name }}&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+                    <strong>聊天室创建人：</strong>{{ chat.chat_user.name }}</h3>
+                {% if chat.chat_start == 0 %}
+                    <h4 style="text-align: center;color: #e38d13 ;font-weight: bold">提示: 讨论区开启后才可正常使用</h4>
+                {% else %}
+                    <h4 style="text-align: center;color: #31b0d5 ;font-weight: bold">提示: 讨论区已开启，可正常使用</h4>
+                {% endif %}
+                <hr style="height: 3px;margin-top:-7px;background-color: #5cb85c">
+            {% endif %}
+
+            {% if type == 0 %}
+                {% if user.user_type == 0 %}
+                    <label for="content" style="margin-left:15px;font-size: x-large">讨论区：{{ chat.chat_name }}</label>
+                    {% if chat.chat_start == 0 %}
+                        <a href="#">
+                            <button disabled="disabled" type="button" class="btn btn-warning"
+                                    style="float: right;margin-left: 1000px;margin-top:-30px; font-size: large">签到
+                            </button>
+                        </a>
+                    {% else %}
+                        {% if result %}
+                            <a href="{% url 'chat:signChat' id chat_id %}">
+                                <button type="button" class="btn btn-warning"
+                                        style="float: right;margin-left: 1000px;margin-top:-30px; font-size: large">签到
+                                </button>
+                            </a>
+                        {% else %}
+                            <a href="#">
+                                <button type="button" class="btn btn-info"
+                                        style="float: right;margin-left: 1000px;margin-top:-30px; font-size: large">已签到
+                                </button>
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <label for="content" style="margin-left:15px;font-size: x-large">讨论区：{{ chat.chat_name }}</label>
+                    {% if chat.chat_start == 0 %}
+                        <a href="{% url 'chat:openChat' id chat.id %}">
+                            <button type="button" class="btn btn-info"
+                                    style="float: right;margin-left: 1000px;margin-top:-30px; font-size: large">开启讨论区
+                            </button>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'chat:closeChat' id chat.id %}">
+                            <button type="button" class="btn btn-danger"
+                                    style="float: right;margin-left: 1000px;margin-top:-30px; font-size: large">关闭讨论区
+                            </button>
+                        </a>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <label for="content"
+                       style="float: left;margin-left:15px;font-size: x-large">闲聊区：{{ chatArea.chat_name }}</label>
+                {% if user.user_type == 2 %}
+                    {% if chatArea.chat_start == 0 %}
+                        <a href="{% url 'chat:openChatArea' id chatArea.id %}">
+                            <button type="button" class="btn btn-info"
+                                    style="float: right;margin-left: 1000px;margin-top:-30px; font-size: large">开启闲聊区
+                            </button>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'chat:closeChatArea' id chatArea.id %}">
+                            <button type="button" class="btn btn-danger"
+                                    style="float: right;margin-left: 1000px;margin-top:-30px; font-size: large">关闭闲聊区
+                            </button>
+                        </a>
+                    {% endif %}
+                    <br><br>
+                {% else %}
+                    <br><br>
+                {% endif %}
+            {% endif %}
+            <div class="col-sm-8">
+                <textarea id="chatRoom" style="font-size: large" class="form-control"
+                          rows="10"></textarea>
+            </div>
+            <br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+            {% if type == 0 %}
+                <br>
+            {% endif %}
+            {% if user.user_type != 0 %}
+                <!--表单控件，用于添加敏感词汇-->
+                <form class="form-inline" action="" method="post" name="addWords"
+                      onsubmit="return Check(document.addWords)">
+                    <p>
+                        {% csrf_token %}
+                    <div class="form-group">
+                        <input id="sentitiveWord" name="sentitiveWord" class="form-control" type="text"
+                               style="margin-left: 15px;width:240px;height: 40px;font-size: 20px" placeholder="敏感词汇...">
+                    </div>
+                    <button id="button" type="submit" class="btn btn-warning"
+                            style="margin-left: 20px;font-size:18px">添加为敏感词汇
+                    </button>
+                    </p>
+                </form>
+            {% endif %}
+            <div class="col-sm-8">
+                <label style="font-size: x-large">消息输入框：</label>
+                <textarea id="input" style="font-size: large" class="form-control"
+                          rows="3" placeholder="点击发送消息按钮即可发送..."></textarea>
+            </div>
+            <br/><br/><br/><br/>
+            {% if type == 0 %}
+                {% if chat.chat_start == 1 %}
+                    <button id="submit" style="margin-left: -97px; margin-top: 60px" type="submit"
+                            class="btn btn-success">
+                        发送消息
+                    </button>
+                {% else %}
+                    <button disabled="disabled" id="submit" style="margin-left: -97px; margin-top: 60px"
+                            type="submit"
+                            class="btn btn-success">
+                        发送消息
+                    </button>
+                {% endif %}
+            {% else %}
+                {% if chatArea.chat_start == 1 %}
+                    <button id="submit" style="margin-left: -97px; margin-top: 60px" type="submit"
+                            class="btn btn-success">
+                        发送消息
+                    </button>
+                {% else %}
+                    <button disabled="disabled" id="submit" style="margin-left: -97px; margin-top: 60px"
+                            type="submit"
+                            class="btn btn-success">
+                        发送消息
+                    </button>
+                {% endif %}
+            {% endif %}
+
+            <hr>
+            <!--参会人员签到情况-->
+            {% if type == 0 %}
+                {% if user.user_type != 0 %}
+                    <ul id="myTab" class="nav nav-tabs">
+                        <li class="active">
+                            <a href="#yes" data-toggle="tab" class="btn-success"
+                               style="font-size: large;font-weight: bold">已签到</a>
+                        </li>
+                        <li>
+                            <a href="#no" data-toggle="tab" class="btn-danger"
+                               style="font-size: large;font-weight: bold">未签到</a>
+                        </li>
+                    </ul>
+                    <div id="myTabContent" class="tab-content">
+                        <div class="tab-pane fade in active" id="yes">
+                            <p>
+                            <table class="table table-hover">
+                                <thead>
+                                <tr style="font-size: large">
+                                    <th>学生姓名</th>
+                                    <th>签到状态</th>
+                                    <th>签到时间</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for attend in attends %}
+                                    <tr style="font-size: large">
+                                        <td>{{ attend.user.name }}</td>
+                                        <td>已签到</td>
+                                        <td>{{ attend.sign_date|date:"Y年m月d日 H:i:s" }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            </p>
+                        </div>
+                        <div class="tab-pane fade" id="no">
+                            <p>
+                            <table class="table table-hover">
+                                <thead>
+                                <tr style="font-size: large">
+                                    <th>学生姓名</th>
+                                    <th>签到状态</th>
+                                    <th>签到时间</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for re in res %}
+                                    <tr style="font-size: large">
+                                        <td>{{ re.name }}</td>
+                                        <td>未签到</td>
+                                        <td>*******</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            </p>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+
+        </div>
+    </div>
+</main>
+</body>
+<script type="text/javascript">
+    function Check(obj) {
+        if (obj.sentitiveWord.value == "") {
+            alert("输入框不能为空...");
+            obj.sentitiveWord.focus();
+            return false;
+        }
+        //弹出确认提交提示框
+        if (confirm("你确定标记该词汇吗?")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //使用数据库中已保存的所有敏感词汇过滤语言中的不恰当字符
+    function filter(message) {
+        var keyWords = {{ keyWords | safe }};
+        for (var i = 0; i < keyWords.length; i++) {
+            //通过正则表达式，并指定全局标志，替换message中所有的子字符串
+            var reg = new RegExp(keyWords[i], "g");
+            message = message.replace(reg, "***");
+        }
+        return message;
+    }
+
+    //将js获得的当前日期date转换为字符串方便输出
+    function dateToString(date) {
+        var year = date.getFullYear();
+        var month = (date.getMonth() + 1).toString();
+        var day = (date.getDate()).toString();
+        var hour = (date.getHours()).toString();
+        var minute = (date.getMinutes()).toString();
+        var second = (date.getSeconds()).toString();
+        if (month.length == 1) {
+            month = "0" + month;
+        }
+        if (day.length == 1) {
+            day = "0" + day;
+        }
+        if (hour.length == 1) {
+            hour = "0" + hour;
+        }
+        if (minute.length == 1) {
+            minute = "0" + minute;
+        }
+        if (second.length == 1) {
+            second = "0" + second;
+        }
+        var dateTime = year + "/" + month + "/" + day + " " + hour + ":" + minute + ":" + second;
+        return dateTime;
+    }
+
+    var roomName = '{{ room_name }}';
+    /*创建WebSocket对象并传入要连接的URL，对象命名为chatSocket，连接Web的urls.py中
+    的路由'chat/<room_name>/'，使网页与Web的Channels实现通信连接
+    未加密的连接：ws://
+    加密的连接：wss://
+    */
+    var chatSocket = new WebSocket(
+        'ws://' + window.location.host +
+        '/chat/' + roomName + '/');
+
+    /*设置chatSocket对象的onmessage事件触发，该事件接收
+    Web发送的数据，并将数据显示在多行文本输入框中
+    将Web发送的数据显示在多行文本输入框中
+    */
+    chatSocket.onmessage = function (event) {
+        var data = JSON.parse(event.data);
+        var message = data['message'];
+        //获取id='chatRoom'的textarea元素中的内容，并添加新的message
+        document.querySelector('#chatRoom').value += (message + '\n');
+    };
+    /*设置chatSocket对象的onclose事件触发，如果JavaScript与
+    Web的通信连接异常，就触发该事件，该事件在浏览器的开发
+    者工具中输出提示信息
+    关闭网页与Web的Channels连接
+    */
+    chatSocket.onclose = function (e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    /*设置"发送"按钮的onclick事件触发，该事件将单行文本输入框的内容
+    发送给Web的Channels。Channels接收某用户的数据后，将数据发送
+    给同一个聊天室的所有用户，此时就会触发chatSocket对象的onmessage事件，
+    将数据显示在每个用户的多行文本输入框中，这样同一个聊天室的所有用户都能
+    看到某个用户发送的信息。
+    网页向Web的Channels发送数据
+    */
+    document.querySelector('#submit').onclick = function (e) {
+        var messageInputDom = document.querySelector('#input');
+        var message = messageInputDom.value;
+        if (message.length == 0) {
+            alert("输入内容不能为空...");
+            message.focus();
+            return false;
+        }
+        //过滤敏感信息
+        var filteredMessage = filter(message);
+        var date = new Date();
+        var dateStr = dateToString(date); //自定义函数转换日期格式
+        //var dateStr = date.toDateString();
+        //var dateStr = date.toISOString();
+        //var dateStr = date.toLocaleDateString();
+        //var dateStr = date.toLocaleTimeString();
+        //var dateStr = date.toString();
+        //var dateStr = date.toTimeString();
+        //var dateStr = date.toUTCString();
+        //chatSocket.send(JSON.stringify(message));
+        // 复制的数据结构，在通过连接发送之前，必须
+        // 进行序列化，例如：将其序列化为一个JSON字符串，然后再发送到服务器
+        chatSocket.send(JSON.stringify({
+            'message': dateStr + "\n{{ user.name }}: " + filteredMessage
+        }));
+        messageInputDom.value = '';
+    };
+</script>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>会议留言</title>
+    {% load staticfiles %}
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div style="margin: 10px">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <!--点击首页后跳转至首页路由-->
+                <a class="navbar-brand" href="{% url 'index:index' id 1 %}">首页</a>
+            </div>
+            <div class="navbar-header">
+                <!--点击会议留言后跳转至会议留言路由-->
+                <a class="navbar-brand" href="{% url 'meeting:boardMeeting' id meeting_id page %}">会议留言</a>
+            </div>
+            <div class="navbar-header">
+                <!--点击会议详情后跳转至会议详情路由-->
+                <a class="navbar-brand" href="{% url 'meeting:detailMeeting' id meeting_id %}">会议详情</a>
+            </div>
+            <div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 18px">
+                            {% if user.name == "" %}
+                                {{ user.username }}
+                            {% else %}
+                                {{ user.name }}
+                            {% endif %}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu"style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="{% url 'base:setPassword' %}">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'base:logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+<br/>
+
+<main style="margin-top:-20px;margin-bottom: 20px;margin-left: 240px;margin-right: 240px;border: solid;border-color: #e38d13">
+    <div class="infosbox">
+        <h2 style="text-align: center"><strong>>>>会议留言信息<<<</strong></h2>
+        <hr style="background-color: #e38d13;height: 2px">
+        <div style="margin: 20px">
+
+            <p style="text-align: center;font-weight: bold;font-size: large">
+                会议名称：<label style="color: #ac2925 ">{{ meeting.meeting_name }}</label>
+                &nbsp&nbsp&nbsp&nbsp发布人：<label style="color: #ac2925 ">
+                {{ meeting.meeting_user.name }}</label>&nbsp&nbsp&nbsp&nbsp参会班级：
+                <label style="color: #ac2925 ">{{ meeting.meeting_banji.banji_name }}</label>
+                ({{ meeting.meeting_banji.banji_major.major_name }})&nbsp&nbsp&nbsp&nbsp
+                会议地点：<label style="color: #ac2925 ">{{ dataAndlab.lab.lab_name }}</label></p>
+            <hr style="height: 2px">
+            {% if Flag %}
+                <h3>
+                    <div style="text-align: center;color:#3e8f3e"><strong>关于此会议目前还没有人留言...</strong></div>
+                </h3>
+            {% endif %}
+            <h4 style="margin: 20px">
+
+                {% for list in pages.object_list %}
+                    <h4 style="font-weight: bold">
+                        <p style="font-size: large">关于: {{ list.theme }}&nbsp&nbsp&nbsp&nbsp&nbsp
+                            [{{ list.date | date:"Y年m月d日H:i:s" }}]
+                            <!--发布会议的老师可以删除会议下的任何留言-->
+                            {% if user.user_type != 0 %}
+                                <a href="{% url 'literature:deleteComment' id list.id %}">
+                                    <button style="float: right; margin-right: 20px; font-size: small "
+                                            type="button" class="btn btn-danger">删除
+                                    </button>
+                                </a>
+                            {% endif %}</p>
+                        <p><label style="color: chocolate">{{ list.user.name }}</label>: {{ list.content }}</p>
+                    </h4>
+                    <hr style="background-color: #e3e3e3">
+                {% endfor %}
+
+                <!--分页功能-->
+                <div class="pagelist" style="margin-left: 2px">
+                    {% if pages.has_previous %}
+                        <a href="{% url 'meeting:boardMeeting' id meeting_id pages.previous_page_number %}"
+                           style="color: #080808;font-size: medium;font-weight: bold ">&nbsp<<&nbsp</a>
+                    {% endif %}
+
+                    {% if pages.object_list %}
+                        {% for page in pages.paginator.page_range %}
+                            {% if pages.number == page %}
+                                <a href="javascript:;" class="curPage" style="color: #080808;font-size: medium;
+                            font-weight: bold;color: crimson ;background-color: #080808 ">&nbsp{{ page }}&nbsp</a>
+                            {% else %}
+                                <a href="{% url 'meeting:boardMeeting' id meeting_id page %}" style="color: #080808;font-size: medium;
+                            font-weight: bold;background-color: #cccccc ">&nbsp{{ page }}&nbsp</a>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if pages.has_next %}
+                        <a href="{% url 'meeting:boardMeeting' id meeting_id pages.next_page_number %}"
+                           style="color: #080808;font-size: medium;font-weight: bold ">
+                            &nbsp>>&nbsp</a>
+                    {% endif %}
+                </div>
+                <hr style="height: 2px">
+                <!--网页表单-->
+                {#在分页导航功能的正下方编写网页表单，用于提交留言信息#}
+                <div class="gbox">
+                    <form action="" method="post" name="board" onsubmit="return Check(document.board)">
+                        {% csrf_token %}
+                        <div class="col-sm-3">
+                            <label for="theme" style="font-size: large">留言主题：</label>
+
+                            <input name="theme" type="text" class="form-control" placeholder="请输入留言主题...">
+                        </div>
+                        <br/><br/><br/><br/>
+                        <div class="col-sm-5">
+                            <label for="content" style="font-size: large">留言内容：</label>
+                            <textarea class="form-control" name="content" cols="43" rows="6" id="content"
+                                      placeholder="请留下您想说的话..."></textarea>
+                        </div>
+                        <br/><br/><br/><br/><br/><br/><br/><br/>
+                        <button style="margin-left: 10px; margin-top: -45px" type="submit" class="btn btn-success">
+                            提交留言
+                        </button>
+                    </form>
+                </div>
+        </div>
+
+    </div>
+    </div>
+    </div>
+</main>
+
+<!--编写网页表单的数据验证脚本，即在提交留言信息之前(发送POST请求之前),
+由JavaScript脚本验证文本输入框的数据是否为空-->
+<script>
+    function Check(obj) {
+        if (obj.name.value == "") {
+            alert("请填写留言主题...");
+            obj.name.focus();
+            return false;
+        }
+        if (obj.content.value == "") {
+            alert("请留下您想说的话...");
+            obj.content.focus();
+            return false;
+        }
+        //弹出确认提交提示框
+        if (confirm("你确定提交吗?")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>
+
+</body>
+</html>

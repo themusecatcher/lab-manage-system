@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>文献详情</title>
+    {% load staticfiles %}
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div style="margin: 10px">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <!--点击首页后跳转至首页路由-->
+                <a class="navbar-brand" href="{% url 'index:index' id 1 %}">首页</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:commentLiterature' id literature_id 1 0 %}">文献评论</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:detailLiterature' id literature_id 0 0 %}">文献详情</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:searchLiterature' id 1 %}">查阅文献</a>
+            </div>
+            <div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 18px">
+                            {% if user.name == "" %}
+                                {{ user.username }}
+                            {% else %}
+                                {{ user.name }}
+                            {% endif %}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="{% url 'base:setPassword' %}">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'base:logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+<br/>
+
+<main style="margin-top:-20px;margin-bottom: 20px;margin-left: 180px;margin-right: 180px;border: solid;border-color: #761c19 ">
+    <div class="infosbox">
+        <h2 style="text-align: center"><strong>☆☆☆文献评论☆☆☆</strong></h2>
+        <hr style="background-color: #761c19;height: 2px">
+        <div style="margin: 20px">
+            <div>
+                <h2 style="text-align: center;font-weight: bold;color: #e38d13">{{ literature.literature_name }}</h2></p>
+                <div style="font-size: large"><strong>作者：</strong>
+                    {{ literature.literature_author }}
+                </div>
+                <div style="font-size: large"><strong>文献关键词：</strong>
+                    {% for label in literature.literature_label.all %}
+                        {% if label == literature.literature_label.all.last %}
+                            <label style="font-weight: normal">{{ label.label_name }}</label>
+                        {% else %}
+                            <label style="font-weight: normal">{{ label.label_name }},</label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div style="font-size: large"><strong>点赞数：</strong>
+                    {{ literature.literature_like }} 次&nbsp&nbsp&nbsp&nbsp&nbsp
+                    <strong>下载数：</strong>{{ literature.literature_download }} 次
+                    &nbsp&nbsp&nbsp&nbsp&nbsp<strong>访问量：</strong>
+                    {{ literature.literature_view }} 次&nbsp&nbsp&nbsp&nbsp&nbsp
+                    <strong>评论量：</strong>{{ literature.literature_comment }} 条
+                </div>
+                <div style="font-size: large"><strong>文献上传者：</strong>
+                    {{ literature.literature_uploader }}&nbsp&nbsp&nbsp&nbsp&nbsp
+                    <strong>上传日期：</strong>{{ literature.upload_date }}</div>
+                <hr style="height: 2px;background-color: #ce8483 ">
+
+                {% if result %}
+                    <h3>
+                        <div class="alert alert-info" style="text-align:left;font-weight: bold">
+                            <strong>关于此文献目前还没有人进行评论...</strong>
+                        </div>
+                    </h3>
+                {% endif %}
+
+                {% for list in pages.object_list %}
+
+                    <h4 style="font-weight: bold">
+                        <p>[{{ list.comment_date|date:"m月d日H:i:s" }}]<label
+                                style="color: chocolate ">{{ list.comment_user.name }}</label>: {{ list.comment_content }}
+                            <!--学生用户可以删除自己的评论，老师可以删除自己上传的文献下所有的评论-->
+                            {% if user.user_type == 0 %}
+                                {% if list.comment_user_id == user.id %}
+                                    <a href="{% url 'literature:deleteComment' id list.id %}">
+                                        <button style="float: right; margin-right: 20px; font-size: small "
+                                                type="button" class="btn btn-danger">删除
+                                        </button>
+                                    </a>
+                                {% endif %}
+                                <!--老师用户-->
+                            {% elif user.user_type == 1 %}
+                                {% if list.comment_literature.literature_uploader_id == user.id %}
+                                    <a href="{% url 'literature:deleteComment' id list.id %}">
+                                        <button style="float: right; margin-right: 20px; font-size: small "
+                                                type="button" class="btn btn-danger">删除
+                                        </button>
+                                    </a>
+                                {% else %}
+                                    {% if list.comment_user_id == user.id %}
+                                        <a href="{% url 'literature:deleteComment' id list.id %}">
+                                            <button style="float: right; margin-right: 20px; font-size: small "
+                                                    type="button" class="btn btn-danger">删除
+                                            </button>
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                                <!--超级管理员用户-->
+                            {% else %}
+                                <a href="{% url 'literature:deleteComment' id list.id %}">
+                                    <button style="float: right; margin-right: 20px; font-size: small "
+                                            type="button" class="btn btn-danger">删除
+                                    </button>
+                                </a>
+                            {% endif %}
+                        </p>
+                    </h4>
+
+                    <hr style="background-color: #e3e3e3;">
+                {% endfor %}
+
+                <!--分页功能-->
+                <div class="pagelist" style="margin-left: 2px">
+                    {% if pages.has_previous %}
+                        <a href="{% url 'literature:commentLiterature' id literature.id pages.previous_page_number 0 %}"
+                           style="color: #080808;font-size: medium;font-weight: bold ">&nbsp<<&nbsp</a>
+                    {% endif %}
+
+                    {% if pages.object_list %}
+                        {% for page in pages.paginator.page_range %}
+                            {% if pages.number == page %}
+                                <a href="javascript:;" class="curPage" style="color: #080808;font-size: medium;
+                            font-weight: bold;color: crimson ;background-color: #080808 ">&nbsp{{ page }}&nbsp</a>
+                            {% else %}
+                                <a href="{% url 'literature:commentLiterature' id literature.id page 0 %}" style="color: #080808;font-size: medium;
+                            font-weight: bold;background-color: #cccccc ">&nbsp{{ page }}&nbsp</a>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if pages.has_next %}
+                        <a href="{% url 'literature:commentLiterature' id literature.id pages.next_page_number 0 %}"
+                           style="color: #080808;font-size: medium;font-weight: bold ">
+                            &nbsp>>&nbsp
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!--网页表单-->
+                {#在分页导航功能的正下方编写网页表单，用于提交留言信息#}
+                <div class="gbox">
+                    <form action="" method="post" name="comment" onsubmit="return Check(document.comment)">
+                        {% csrf_token %}
+                        <hr style="background-color: #e38d13;height: 3px">
+                        <div class="col-sm-5">
+                            <label for="comment" style="font-size: large">评论内容：</label>
+                            <textarea class="form-control" name="comment" rows="3" id="comment"
+                                      placeholder="留下您想说的话..."></textarea>
+                        </div>
+                        <br>
+
+                        <button style="margin-left: -97px; margin-top: 90px" type="submit" class="btn btn-success">
+                            发布评论
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</main>
+
+<!--由JavaScript脚本验证文本输入框的数据是否为空-->
+<script type="text/javascript">
+    function Check(obj) {
+        if (obj.comment.value == "") {
+            alert("请输入评论内容...");
+            obj.comment.focus();
+            return false;
+        }
+        //弹出确认提交提示框
+        if (confirm("你确定要提交评论吗?")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>
+</body>
+</html>

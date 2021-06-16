@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>新建文献标签</title>
+    {% load staticfiles %}
+    <!--引入网站图标-->
+    <link rel="shortcut icon" href="{% static "lab.png" %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div style="margin: 10px">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <!--点击首页后跳转至首页路由-->
+                <a class="navbar-brand" href="{% url 'index:index' id 1 %}">首页</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:createLabel' id 1 0 %}">新建文献标签</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:createLiterature' id 1 0 %}">新建文献</a>
+            </div>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{% url 'literature:checkLiterature' id 1 %}">查看已上传文献</a>
+            </div>
+            <div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 18px">
+                            {% if user.name == "" %}
+                                {{ user.username }}
+                            {% else %}
+                                {{ user.name }}
+                            {% endif %}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" style="font-size: 16px">
+                            <li><a href="{% url 'literature:checkFavorite' id 1 %}">收藏夹</a></li>
+                            <li><a href="{% url 'base:userCenter' id %}">个人中心</a></li>
+                            <li><a href="{% url 'base:setPassword' %}">修改密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'base:logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+<br/>
+
+<main style="margin-top:-20px;margin-bottom: 20px;margin-left: 200px;margin-right: 200px;border: solid;border-color: #761c19">
+    <div class="infosbox">
+        <h2 style="text-align: center"><strong>>>>新建文献标签<<<</strong></h2>
+        <hr style="background-color: #761c19;height: 2px">
+        <div style="margin: 30px">
+
+            <form action="" method="post" name="createLabel" onsubmit="return Check(document.createLabel)">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <a><label for="label_name" class="cke_label"
+                              style="margin-left:200px;float: left;color: #080808;font-size: x-large">标签名称:</label></a>
+                    <div class="col-sm-3">
+                        <input name="label_name" type="text" class="form-control" id="label_name" style="height: 40px"
+                               placeholder="请输入标签名称">
+                    </div>
+                </div>
+
+                <div style="margin-left: 600px">
+                    <button id="button" type="submit" class="btn btn-info" style="font-size: large">
+                        创建标签
+                    </button>
+                </div>
+            </form>
+            <!--标签名重复导致标签创建失败-->
+            {% if createFail %}
+                <h3>
+                    <div
+                            style="color: #e38d13 ;text-align: center;font-weight: bold">标签创建失败,请输入不同的标签名称!
+                    </div>
+                </h3>
+            {% else %}
+                {% if type == 1 %}
+                    <h3>
+                        <div style="color: #4cae4c ;text-align: center;font-weight: bold">创建标签成功!
+                        </div>
+                    </h3>
+                {% else %}
+                    <br/>
+                    <br/>
+                {% endif %}
+            {% endif %}
+            <hr style="background-color:#761c19;height: 2px">
+            <!--该用户还未创建任何标签-->
+            {% if user.user_type == 1 %}
+                {% if result %}
+                    <h3>
+                        <div class="alert alert-success"
+                             style="text-align:left;font-weight: bold">您还未曾创建任何标签:(
+                        </div>
+                    </h3>
+                {% else %}
+                    <h3>
+                        <div class="alert alert-success"
+                             style="text-align:left;font-weight: bold">{{ user.name }}所有自定义标签如下表所示☟
+                        </div>
+                    </h3>
+                {% endif %}
+            {% else %}
+                {% if result %}
+                    <h3>
+                        <div class="alert alert-success"
+                             style="text-align:left;font-weight: bold">还未有任何用户创建标签:(
+                        </div>
+                    </h3>
+                {% else %}
+                    <h3>
+                        <div class="alert alert-success"
+                             style="text-align:left;font-weight: bold">所有用户自的定义标签如下表所示☟
+                        </div>
+                    </h3>
+                {% endif %}
+            {% endif %}
+
+            <table class="table table-hover">
+                <thead>
+                <tr style="font-size: 21px">
+                    <th>文献标签名称</th>
+                    <th>标签创建人</th>
+                    <th>标签创建时间</th>
+                    <th>Delete</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for list in pages.object_list %}
+                    <tr style="font-size: 21px">
+                        <td style="font-weight: bold;color: #5cb85c ">{{ list.label_name }}</td>
+                        <td>{{ list.label_user.name }}</td>
+                        <td>{{ list.create_date|date:"Y年m月d日H:i:s" }}</td>
+                        <td>
+                            <a href="{% url 'literature:deleteLabel' id list.id page %}">
+                                <button id="button" type="button" class="btn btn-danger"
+                                        style="font-size: 13px">删除
+                                </button>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+            </table>
+
+            <!--分页功能-->
+            <div class="pagelist">
+                {% if pages.has_previous %}
+                    <a href="{% url 'literature:createLabel' id pages.previous_page_number 0 %}"
+                       style="color: #080808;font-size: medium;font-weight: bold ">&nbsp<<&nbsp</a>
+                {% endif %}
+
+                {% if pages.object_list %}
+                    {% for page in pages.paginator.page_range %}
+                        {% if pages.number == page %}
+                            <a href="javascript:;" class="curPage" style="color: #080808;
+                            font-size: medium;font-weight: bold;color: crimson ;background-color: #080808 ">&nbsp{{ page }}&nbsp</a>
+                        {% else %}
+                            <a href="{% url 'literature:createLabel' id page 0 %}" style="color: #080808;font-size: medium;
+                            font-weight: bold;background-color: #cccccc ">&nbsp{{ page }}&nbsp</a>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                {% if pages.has_next %}
+                    <a href="{% url 'literature:createLabel' id pages.next_page_number 0 %}"
+                       style="color: #080808;font-size: medium;font-weight: bold ">
+                        &nbsp>>&nbsp</a>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+    </div>
+</main>
+
+<!--编写网页表单的数据验证脚本，即在提交留言信息之前(发送POST请求之前),
+由JavaScript脚本验证文本输入框的数据是否为空-->
+<script type="text/javascript">
+    function Check(obj) {
+        if (obj.label_name.value == "") {
+            alert("请输入标签名称...");
+            obj.label_name.focus();
+            return false;
+        }
+        //弹出确认提交提示框
+        if (confirm("你确定要创建标签吗?")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>
+
+</body>
+</html>
